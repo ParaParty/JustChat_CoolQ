@@ -61,7 +61,7 @@ Begin
 	S:=fpSocket (AF_INET,SOCK_STREAM,0);
 	if SocketError<>0 then CQ_i_addLog(CQLOG_INFO,'JustChatS | StartServer','Socket : ');
 	SAddr.sin_family:=AF_INET;
-	SAddr.sin_port:=htons(5000);
+	SAddr.sin_port:=htons(38440);
 	SAddr.sin_addr.s_addr:=0;
 	if fpBind(S,@SAddr,sizeof(saddr))=-1 then begin
         CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ');
@@ -132,22 +132,32 @@ Var
 	c	:	char;
 Begin
 	
-    CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Accept',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
-	try
-		repeat
-			read(a^.sIn,c);
-			a^.buff:=a^.buff+c;
-			//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Readin '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
-			checkMessage(a);
-			
-		until false;
-	except
-		on e:Exception do begin
-        CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+	if NetAddrToStr(a^.FromName.sin_addr)='132.232.30.14' then begin
+		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Accept',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+		try
+			repeat
+				read(a^.sIn,c);
+				a^.buff:=a^.buff+c;
+				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Readin '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
+				checkMessage(a);
+				
+			until false;
+		except
+			on e:Exception do begin
+			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+			ClientList.Remove(a);
+			FreeMem(a);
+			end;
+		end;
+	end
+	else
+	begin
+		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close | Invalid Connection',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
 		ClientList.Remove(a);
 		FreeMem(a);
-		end;
 	end;
+
+
 End;
 
 procedure listening();stdcall;
@@ -173,6 +183,8 @@ Var
 	len:longint;
 	a:PClient;
 begin
+	if ClientList.Count=0 then exit();
+
 	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
 	CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Clients:'+NumToChar(ClientList.Count),Base64_Encryption(MSG));
 	len:=length(MSG);

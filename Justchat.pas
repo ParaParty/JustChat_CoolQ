@@ -148,15 +148,34 @@ Var
     AtID            :int64;
     AtData          :ansistring;
     isScaningAt     :boolean;
+	
+	imageData		:ansistring;
+	isScaningImage	:boolean;
 
 Begin
     emojiID:=0;
     AtID:=0;
+	isScaningImage:=false;
 	isScaningEmoji:=false;
 	isScaningAt:=false;
-	
+		
+	imageData:=ansistring('[图片]');
+
 	i:=1;
 	while i<=length(s) do begin
+		if isScaningImage then begin
+			if s[i]=']' then begin
+				delete(s,i,1);
+				s:=copy(s,1,i-1)+imageData+Copy(s,i,length(s));
+				i:=i+length(imageData)-1;
+				isScaningImage:=false
+			end
+			else
+			begin
+				delete(s,i,1);
+			end;
+		end
+		else
 		if isScaningEmoji then begin
 			if s[i]=']' then begin
 				delete(s,i,1);
@@ -185,6 +204,11 @@ Begin
 				AtID:=AtID*10+CharToNum(s[i]);
 				delete(s,i,1);
 			end;
+		end
+		else
+		if copy(s,i,length('[CQ:image,file='))='[CQ:image,file=' then begin
+			delete(s,i,length('[CQ:image,file='));
+			isScaningImage:=true;
 		end
 		else		
 		if copy(s,i,length('[CQ:emoji,id='))='[CQ:emoji,id=' then begin
