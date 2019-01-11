@@ -2,7 +2,7 @@ unit Justchat;
 {$MODE DELPHI}
 interface
 uses
-    sysutils,classes,
+    sysutils,classes,inifiles,
     fpjson,jsonparser,RegExpr,
     sockets,
     CoolQSDK,
@@ -43,7 +43,7 @@ begin
                 if pos('Text{',content)=1 then delete(content,1,5);
                 if content[length(content)]='}' then delete(content,length(content),1);
 
-                CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+sender+': '+content);
+                CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
 
             end
             else
@@ -135,47 +135,197 @@ Begin
     exit(NumToChar(FromQQ));
 End;
 
-
-function MSG_Filter(fromGroup,fromQQ:int64;s:AnsiString):AnsiString;
-Var
-	RegExp : TRegExpr;
-	i:longint;
-	
-	emojiID			:longint;
-	emojiData		:ansistring;
-	isScaningEmoji	:boolean;
-
-    AtID            :int64;
-    AtData          :ansistring;
-    isScaningAt     :boolean;
-	
-	imageData		:ansistring;
-	isScaningImage	:boolean;
-
+function GetImage(s:ansistring):ansistring;
+{
+	Var
+	A:TCustomIniFile;
+	b:ansistring;
+}
 Begin
-    emojiID:=0;
-    AtID:=0;
-	isScaningImage:=false;
-	isScaningEmoji:=false;
-	isScaningAt:=false;
-		
-	imageData:=ansistring('[图片]');
+{
+	A := TCustomIniFile('data/image/'+s+'.cqimg',false);
+	b:=A.ReadString('image','url','');
+	//Message_Replace(b,'vuin='+NumToChar(CQ_i_getLoginQQ()),'');
+	A.Destroy;
+	exit(b);
+}
+	exit('https://gchat.qpic.cn/gchatpic_new//--'+copy(s,1,pos('.',s)-1)+'/0');
+End;
 
-	i:=1;
-	while i<=length(s) do begin
-		if isScaningImage then begin
-			if s[i]=']' then begin
-				delete(s,i,1);
-				s:=copy(s,1,i-1)+imageData+Copy(s,i,length(s));
-				i:=i+length(imageData)-1;
-				isScaningImage:=false
+Type
+		ParamPair = record
+						k,v:ansistring;
+					end;
+		PParamPair = ^ParamPair;
+
+function Params_Split(s:ansistring):TList;
+Var
+	b	:	TList;
+	a	:	TStringlist;
+	i	:	longint;
+	d	:	PParamPair;
+Begin
+	a					:= TStringlist.Create;
+	a.StrictDelimiter	:= True;
+	a.Delimiter			:= ',';
+	a.DelimitedText		:= s;
+	
+	if a.count<=0 then Begin
+		a.Clear;
+		a.Free;
+		exit(nil);
+	End;
+
+	b := TList.Create();
+	for i:=0 to a.count-1 do begin
+		new(d);
+		d^.v:=a[i];
+		d^.k:=copy(d^.v,1,pos('=',d^.v)-1);
+		delete(d^.v,1,pos('=',d^.v));
+
+		d^.k:=CQ_CharDecode(d^.k);
+		d^.v:=CQ_CharDecode(d^.v);
+
+		b.add(d);
+	end;
+	
+	exit(b);
+End;
+
+function Params_Get(a:TList;k:ansistring):ansistring;
+Var
+	i	:	longint;
+Begin
+	result:='';
+	for i:=0 to a.count-1 do begin
+		if k=PParamPair(a[i])^.k then exit(PParamPair(a[i])^.v);
+	end;
+End;
+
+function StringToOBJ(fromGroup,fromQQ:int64;s:ansistring):TJsonObject;
+Var
+	obj:TJsonObject;
+	func:ansistring;
+	P:TList;
+Begin
+	obj:=TJsonObject.Create;
+	if (s[1]='[') and (s[length(s)]=']') then begin
+		obj.add('type','cqcode');
+		
+		func:=copy(s,1+1,pos(',',s)-1-1);
+		delete(s,1,pos(',',s));
+		delete(s,length(s),1);
+		
+		if (func='CQ:at') then
+		begin
+			p:=Params_Split(s);
+			if p<>nil then begin
+				obj.add('function',func);
+				obj.add('target',Base64_Encryption(GetNick(fromGroup,CharToNum(Params_Get(p,'qq')))));
+				P.free;
 			end
 			else
 			begin
-				delete(s,i,1);
+				obj.Destroy;
+				obj:=nil;
 			end;
 		end
 		else
+		if (func='CQ:image') then
+		begin
+			p:=Params_Split(s);
+			if p<>nil then begin
+				obj.add('function',func);
+				obj.add('url',GetImage(Params_Get(p,'file')));
+				obj.add('content',Base64_Encryption('[图片]'));
+				P.free;
+			end
+			else
+			begin
+				obj.Destroy;
+				obj:=nil;
+			end;
+		end
+		else
+		begin
+			obj.Destroy;
+			obj:=nil;
+		end;
+	end
+	else
+	begin
+		obj.add('type','text');
+		obj.add('content',Base64_Encryption(CQ_CharDecode(s)));
+	end;
+	exit(obj);
+End;
+	
+function MSG_StringToJSON(fromGroup,fromQQ:int64;s:ansistring):TJsonArray;
+Var
+	isScaning : boolean;
+	data	:	ansistring;
+	
+	i	:	longint;
+	
+	obj		:	TJsonObject;
+	back	:	TJsonArray;
+Begin
+	data:='';
+	isScaning:=false;
+	back := TJsonArray.create();
+	
+	for i:=1 to length(s) do begin
+		if isScaning then begin
+			data:=data+s[i];
+			if s[i]=']' then begin
+				obj:=nil;
+				if data<>'' then obj:=StringToOBJ(fromGroup,fromQQ,data);
+				if obj<>nil then back.add(obj);
+				isScaning:=false;
+				data:='';
+			end
+			else
+			begin
+			end;
+		end
+		else
+		begin
+			if s[i]='[' then begin
+				obj:=nil;
+				if data<>'' then obj:=StringToOBJ(fromGroup,fromQQ,data);
+				if obj<>nil then back.add(obj);
+				isScaning:=true;
+				data:='[';
+			end
+			else
+			begin
+				data:=data+s[i];
+			end;			
+		end;	
+	end;
+	obj:=nil;
+	if data<>'' then begin
+		obj:=StringToOBJ(fromGroup,fromQQ,data);
+		if obj<>nil then back.add(obj);
+	end;
+
+	exit(back);
+End;
+
+
+function MSG_EmojiConverter(fromGroup,fromQQ:int64;s:AnsiString):AnsiString;
+Var
+	i:longint;
+	emojiID			:longint;
+	emojiData		:ansistring;
+	isScaningEmoji	:boolean;
+Begin
+    emojiID:=0;
+	isScaningEmoji:=false;
+
+
+	i:=1;
+	while i<=length(s) do begin
 		if isScaningEmoji then begin
 			if s[i]=']' then begin
 				delete(s,i,1);
@@ -190,50 +340,16 @@ Begin
 				delete(s,i,1);
 			end;
 		end
-        else
-		if isScaningAt then begin
-			if s[i]=']' then begin
-				delete(s,i,1);
-				AtData:='@'+GetNick(fromGroup,AtID);
-				s:=copy(s,1,i-1)+AtData+Copy(s,i,length(s));
-				i:=i+length(AtData)-1;
-				isScaningAt:=false
-			end
-			else
-			begin
-				AtID:=AtID*10+CharToNum(s[i]);
-				delete(s,i,1);
-			end;
-		end
 		else
-		if copy(s,i,length('[CQ:image,file='))='[CQ:image,file=' then begin
-			delete(s,i,length('[CQ:image,file='));
-			isScaningImage:=true;
-		end
-		else		
 		if copy(s,i,length('[CQ:emoji,id='))='[CQ:emoji,id=' then begin
 			emojiid:=0;
 			delete(s,i,length('[CQ:emoji,id='));
 			isScaningEmoji:=true;
 		end
-        else
-		if copy(s,i,length('[CQ:at,qq='))='[CQ:at,qq=' then begin
-			AtID:=0;
-			delete(s,i,length('[CQ:at,qq='));
-			isScaningAt:=true;
-		end
 		else
 		inc(i);
 		//writeln(s,' ',i,' ',s[i],' ',emojiID);
 	end;
-
-	
-	RegExp := TRegExpr.Create;
-	RegExp.Expression := '\[CQ:.*\]';
-	s:=RegExp.Replace(s, '', True);
-	RegExp.Free;
-
-    s:=CQ_CharDecode(s);
 
     exit(s);
 End;
@@ -244,13 +360,20 @@ procedure MSG_PackAndSend(
 			fromAnonymous,msg	:ansistring;
 			font					:longint);
 Var
+	A:TJsonArray;
 	S:TJsonObject;
     sender:ansistring;
     content:ansistring;
 Begin
 
 	if fromGroup=Justchat_BindGroup then begin
-        content:=Base64_Encryption(MSG_Filter(fromGroup,fromQQ,MSG));
+		A:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
+		CQ_i_addLog(CQLOG_DEBUG,'',A.AsJson);
+		if (A=nil) or (A.count=0) then begin
+			if A<>nil then A.Destroy;
+			exit();
+		end;
+        content:=Base64_Encryption(A.AsJSON);
         if content='' then exit();
 
         S := TJsonObject.Create();
