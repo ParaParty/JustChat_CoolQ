@@ -61,6 +61,7 @@ End;
 Function code_eventEnable:longint;
 Begin
 
+	Init_Config();
 
 	PonMessageReceived:=@onMessageReceived;
 	StertServer();

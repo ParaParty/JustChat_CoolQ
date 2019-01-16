@@ -4,7 +4,8 @@ unit JustchatServer;
 interface
 uses
     Sockets,windows,classes,sysutils,
-    CoolQSDK;
+    CoolQSDK,
+	JustchatConfig;
 
 Type
 	Client = record
@@ -61,8 +62,8 @@ Begin
 	S:=fpSocket (AF_INET,SOCK_STREAM,0);
 	if SocketError<>0 then CQ_i_addLog(CQLOG_INFO,'JustChatS | StartServer','Socket : ');
 	SAddr.sin_family:=AF_INET;
-	SAddr.sin_port:=htons(38440);
-	SAddr.sin_addr.s_addr:=0;
+	SAddr.sin_port:=htons(ServerConfig.port);
+	SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
 	if fpBind(S,@SAddr,sizeof(saddr))=-1 then begin
         CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ');
     end;
@@ -132,7 +133,7 @@ Var
 	c	:	char;
 Begin
 	
-	if NetAddrToStr(a^.FromName.sin_addr)='132.232.30.14' then begin
+	//if NetAddrToStr(a^.FromName.sin_addr)='132.232.30.14' then begin
 		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Accept',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
 		try
 			repeat
@@ -149,13 +150,13 @@ Begin
 			FreeMem(a);
 			end;
 		end;
-	end
-	else
-	begin
-		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close | Invalid Connection',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
-		ClientList.Remove(a);
-		FreeMem(a);
-	end;
+	//end
+	//else
+	//begin
+	//	CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close | Invalid Connection',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+	//	ClientList.Remove(a);
+	//	FreeMem(a);
+	//end;
 
 
 End;
@@ -164,6 +165,8 @@ procedure listening();stdcall;
 Var
 	a : PClient;
 Begin
+	CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Server started on '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+
 	while true do begin
 		new(a);
         CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Waiting for Connect from Client, run now sock_cli in an other tty');

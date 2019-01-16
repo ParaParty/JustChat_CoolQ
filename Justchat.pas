@@ -2,7 +2,7 @@ unit Justchat;
 {$MODE DELPHI}
 interface
 uses
-    sysutils,classes,inifiles,
+    sysutils,classes{,inifiles},
     fpjson,jsonparser,RegExpr,
     sockets,
     CoolQSDK,
