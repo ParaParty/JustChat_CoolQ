@@ -9,7 +9,9 @@ uses
     JustchatConfig,JustchatServer;
 
 const
-    TMsgType_Message = 0;
+    TMsgType_HEARTBEATS = 0;
+    TMsgType_INFO = 0;
+    TMsgType_MESSAGE = 2;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);
 procedure MSG_PackAndSend(
@@ -20,6 +22,20 @@ procedure MSG_PackAndSend(
 
 
 implementation
+
+
+function TextMessageContentUnpack(a:TJSONData):ansistring;
+Var
+	i:longint;
+Begin
+	result:='';
+	for i:=0 to a.count-1 do begin
+		if a.FindPath('['+NumToChar(i)+'].type').asString='text' then begin
+			result:=result+a.FindPath('['+NumToChar(i)+'].content').asString;
+		end;
+	end;
+End;
+
 procedure onMessageReceived(aMSGPack:PMessagePack);
 Var
     S:TJsonData;
@@ -27,7 +43,7 @@ Var
     version:int64;
     msgtype:int64;
 
-    sender,content:AnsiString;
+    world_display,sender,content:AnsiString;
 begin
     try
         S:=GetJSON(aMSGPack^.MSG);
@@ -37,13 +53,14 @@ begin
 
             if msgtype=TMsgType_Message then begin
                 sender:=Base64_Decryption(S.FindPath('sender').asString);
-                content:=Base64_Decryption(S.FindPath('content').asString);
-                // Text{   }
+                world_display:=Base64_Decryption(S.FindPath('world_display').asString);
+                content:=TextMessageContentUnpack(S.FindPath('content'));
 
                 if pos('Text{',content)=1 then delete(content,1,5);
                 if content[length(content)]='}' then delete(content,length(content),1);
 
-                CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
+                //CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
+                CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]['+CQ_CharEncode(world_display,false)+']'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
 
             end
             else
@@ -221,7 +238,7 @@ Begin
 			p:=Params_Split(s);
 			if p<>nil then begin
 				obj.add('function',func);
-				obj.add('target',Base64_Encryption(GetNick(fromGroup,CharToNum(Params_Get(p,'qq')))));
+				obj.add('target',Base64_Encryption('@'+GetNick(fromGroup,CharToNum(Params_Get(p,'qq')))));
 				P.free;
 			end
 			else
@@ -360,21 +377,18 @@ procedure MSG_PackAndSend(
 			fromAnonymous,msg	:ansistring;
 			font					:longint);
 Var
-	A:TJsonArray;
 	S:TJsonObject;
     sender:ansistring;
-    content:ansistring;
+    content:TJsonArray;
 Begin
 
 	if fromGroup=Justchat_BindGroup then begin
-		A:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
-		CQ_i_addLog(CQLOG_DEBUG,'',A.AsJson);
-		if (A=nil) or (A.count=0) then begin
-			if A<>nil then A.Destroy;
+		content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
+		//CQ_i_addLog(CQLOG_DEBUG,'',content.AsJson);
+		if (content=nil) or (content.count=0) then begin
+			if content<>nil then content.Destroy;
 			exit();
 		end;
-        content:=Base64_Encryption(A.AsJSON);
-        if content='' then exit();
 
         S := TJsonObject.Create();
         S.add('version',ServerPackVersion);

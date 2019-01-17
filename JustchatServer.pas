@@ -28,7 +28,7 @@ Type
 	TonMessageReceived = procedure(aMSGPack:PMessagePack);
 
 Const
-	ServerPackVersion = 1;
+	ServerPackVersion = 2;
 
 Var
     PonMessageReceived:pointer=nil;
