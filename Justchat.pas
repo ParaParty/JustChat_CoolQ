@@ -8,11 +8,6 @@ uses
     CoolQSDK,
     JustchatConfig,JustchatServer;
 
-const
-    TMsgType_HEARTBEATS = 0;
-    TMsgType_INFO = 0;
-    TMsgType_MESSAGE = 2;
-
 procedure onMessageReceived(aMSGPack:PMessagePack);
 procedure MSG_PackAndSend(
 			subType,MsgID			:longint;
@@ -39,11 +34,14 @@ End;
 procedure onMessageReceived(aMSGPack:PMessagePack);
 Var
     S:TJsonData;
-
+	P:TBaseJSONEnumerator;
     version:int64;
     msgtype:int64;
 
     world_display,sender,content:AnsiString;
+	eventType:longint;
+
+	back:ansistring;
 begin
     try
         S:=GetJSON(aMSGPack^.MSG);
@@ -64,6 +62,29 @@ begin
 
             end
             else
+			if msgtype=TMsgType_Info then begin
+				eventType:=  S.FindPath('event').asInt64;
+				P:=S.GetEnumerator;
+				back:='';
+				while P.MoveNext do begin
+					if upcase(P.Current.Key)='CONTENT' then begin
+						back:=S.FindPath(P.Current.Key).AsString;
+					end else
+				end;
+				
+				if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+				if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+				if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+					
+				sender:=Base64_Decryption(S.FindPath('sender').asString);
+				if pos('%SENDER%',back)>0
+					then Message_Replace(back,'%SENDER%',sender)
+					else Message_Replace(back,'%PLAYER%',sender);
+
+				P.Destroy;
+				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+			end
+			else
             begin
                 CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message with an unrecognized type.');
             end;
