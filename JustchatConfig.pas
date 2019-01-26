@@ -20,11 +20,12 @@ Var
 procedure Init_Config();
 
 Const
-	ServerPackVersion = 2;
+	ServerPackVersion = 3;
 
     TMsgType_HEARTBEATS = 0;
-    TMsgType_INFO = 1;
-    TMsgType_MESSAGE = 2;
+    TMSGTYPE_REGISTRATION = 1;
+    TMsgType_INFO = 100;
+    TMsgType_MESSAGE = 101;
 
     TMsgType_INFO_Join = 1;
     TMsgType_INFO_Disconnect = 2;
