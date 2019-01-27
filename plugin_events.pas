@@ -64,6 +64,7 @@ Begin
 	Init_Config();
 
 	PonMessageReceived:=@onMessageReceived;
+	PMSG_Register:=@MSG_Register;
 	StertServer();
 	createthread(nil,0,@listening,nil,0,JustchatServer_PID);	
 
@@ -124,7 +125,7 @@ Begin
 		CQ_Tools_TextToAnonymous(fromAnonymous,AnonymousMes);
 		//将匿名用户信息存到 AnonymousMes
 	end;}
-
+	if Justchat_BindGroup=0 then exit(EVENT_IGNORE);
 	MSG_PackAndSend(subType,MsgID,fromGroup,fromQQ,fromAnonymous,msg,font);
 		
 {$IFDEF FPC}

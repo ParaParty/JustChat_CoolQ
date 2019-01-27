@@ -168,12 +168,15 @@ Begin
         A:= TIniFile.Create(CQ_i_getAppDirectory+'config.ini',false);
 		A.CacheUpdates:= true;
         ServerConfig.ip:=StrToHostAddr(A.ReadString('server','ip','0.0.0.0'));
+        if HostAddrToStr(ServerConfig.ip)='0.0.0.0' then begin
+            A.WriteString('server','ip','0.0.0.0');
+        end;
         ServerConfig.port:=A.ReadInt64('server','port',54321);
-		if (ServerConfig.port<1) or (ServerConfig.port>65535) then begin
+		if (ServerConfig.port=54321) or (ServerConfig.port<1) or (ServerConfig.port>65535) then begin
 			A.WriteInt64('server','port',54321);
 			ServerConfig.port:=54321;
 		end;
-        ServerConfig.mode:=A.ReadString('server','mode','server');
+        ServerConfig.mode:=A.ReadString('server','mode','');
         if (upcase(ServerConfig.mode)<>'SERVER') and (upcase(ServerConfig.mode)<>'CLIENT') then begin
             ServerConfig.mode:='server';
             A.WriteString('server','mode',ServerConfig.mode);
@@ -190,6 +193,9 @@ Begin
 			end;
         end;
         Justchat_BindGroup:=A.ReadInt64('config','groupid',0);
+        if Justchat_BindGroup=0 then begin
+            A.WriteInt64('config','groupid',0);
+        end;
 		A.UpdateFile;
         A.Destroy;
     end;
@@ -223,8 +229,15 @@ Begin
     begin
         A:= TIniFile.Create(CQ_i_getAppDirectory+'message.ini',true);
         MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
+        A.WriteString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
+
         MessageFormat.Msg_INFO_Disconnect:=A.ReadString('message','Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
+        A.WriteString('message','Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
+
         MessageFormat.Msg_INFO_PlayerDead:=A.ReadString('message','Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
+        A.WriteString('message','Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
+
+
         A.Destroy;
     end;
 End;

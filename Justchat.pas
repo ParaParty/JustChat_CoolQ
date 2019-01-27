@@ -14,6 +14,7 @@ procedure MSG_PackAndSend(
 			fromgroup,fromQQ		:int64;
 			fromAnonymous,msg	:ansistring;
 			font					:longint);
+function MSG_Register():ansistring;
 
 
 implementation
@@ -26,7 +27,7 @@ Begin
 	result:='';
 	for i:=0 to a.count-1 do begin
 		if a.FindPath('['+NumToChar(i)+'].type').asString='text' then begin
-			result:=result+a.FindPath('['+NumToChar(i)+'].content').asString;
+			result:=result+Base64_Decryption(a.FindPath('['+NumToChar(i)+'].content').asString);
 		end;
 	end;
 End;
@@ -53,9 +54,9 @@ begin
                 sender:=Base64_Decryption(S.FindPath('sender').asString);
                 world_display:=Base64_Decryption(S.FindPath('world_display').asString);
                 content:=TextMessageContentUnpack(S.FindPath('content'));
-
-                if pos('Text{',content)=1 then delete(content,1,5);
-                if content[length(content)]='}' then delete(content,length(content),1);
+				
+                //if pos('Text{',content)=1 then delete(content,1,5);
+                //if content[length(content)]='}' then delete(content,length(content),1);
 
                 //CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
                 CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]['+CQ_CharEncode(world_display,false)+']'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
@@ -64,6 +65,10 @@ begin
             else
 			if msgtype=TMsgType_Info then begin
 				eventType:=  S.FindPath('event').asInt64;
+				if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+				if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+				if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+
 				P:=S.GetEnumerator;
 				back:='';
 				while P.MoveNext do begin
@@ -72,9 +77,7 @@ begin
 					end else
 				end;
 				
-				if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-				if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-				if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+
 					
 				sender:=Base64_Decryption(S.FindPath('sender').asString);
 				if pos('%SENDER%',back)>0
@@ -416,10 +419,27 @@ Begin
         S.add('type',TMsgType_Message);
         sender:=Base64_Encryption(GetNick(fromGroup,fromQQ));
         S.add('sender',sender);
+        S.add('world',NumToChar(fromGroup));
+        S.add('world_display',Base64_Encryption(NumToChar(fromGroup)));
         S.add('content',content);
         Broadcast(S.AsJSON);
         if S<>nil then S.Destroy;
 	end;
 End;
+
+function MSG_Register():ansistring;
+Var
+	S:TJsonObject;
+Begin
+	S := TJsonObject.Create();
+	S.add('version',ServerPackVersion);
+	S.add('type',TMSGTYPE_REGISTRATION);
+	S.add('identity',1);
+	S.add('id',ServerConfig.ID);
+	S.add('name',ServerConfig.ConsoleName);
+	result:=S.AsJSON;
+	if S<>nil then S.Destroy;
+End;
+
 
 end.

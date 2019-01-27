@@ -3,7 +3,7 @@ unit JustchatServer;
 
 interface
 uses
-    Sockets,windows,classes,sysutils,
+    Sockets,windows,classes,sysutils,crt,
     CoolQSDK,
 	JustchatConfig;
 
@@ -26,16 +26,19 @@ Type
 	PMessagePack= ^MessagePack;
 	
 	TonMessageReceived = procedure(aMSGPack:PMessagePack);
+	TMSG_Register = function():ansistring;
 
 
 Var
     PonMessageReceived:pointer=nil;
+    PMSG_Register:pointer=nil;
     JustchatServer_PID:LongWord;
 
 
 procedure StertServer();
 procedure listening();stdcall;
-procedure Broadcast(MSG:ansistring);
+procedure Broadcast(MSG:ansistring);overload;
+procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
 
 implementation
 
@@ -84,13 +87,17 @@ End;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);stdcall;
 Begin
-	CQ_i_addLog(CQLOG_INFORECV,'JustChatS | Broadcast | '+NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port),Base64_Encryption(aMSGPack^.MSG));
 	if PonMessageReceived<>nil then begin
+		if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFORECV,'JustChatS | onMessageReceived | '+NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port),Base64_Encryption(aMSGPack^.MSG))
+		else if upcase(ServerConfig.mode)='CLIENT' then CQ_i_addLog(CQLOG_INFORECV,'JustChatS | onMessageReceived | '+NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port),Base64_Encryption(aMSGPack^.MSG))
+		else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession','A Unknown mod given');
 		TonMessageReceived(PonMessageReceived)(aMSGPack);
 	end
 	else
 	begin
-        CQ_i_addLog(CQLOG_WARNING,'JustChatS | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : onMessageReceived is not assigned.');
+		if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_WARNING,'JustChatS | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : onMessageReceived is not assigned.')
+		else if upcase(ServerConfig.mode)='CLIENT' then  CQ_i_addLog(CQLOG_WARNING,'JustChatS | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : onMessageReceived is not assigned.')
+		else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession','A Unknown mod given');        
 	end;
 	dispose(aMSGPack);
 End;
@@ -200,17 +207,21 @@ Begin
 
 			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server (Client Mode)','Connecting to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 			new(a);
-			if Connect(S,a^.FromName,a^.Sin,a^.Sout) then begin
+			a^.FromName:=SAddr;
+			if Connect(S,SAddr,a^.Sin,a^.Sout) then begin
 				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server (Client Mode)','Connected to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 				Reset(a^.Sin);
 				ReWrite(a^.Sout);
 				a^.buff:='';
+				if PMSG_Register<>nil then Broadcast(TMSG_Register(PMSG_Register)(),a);
 				createthread(nil,0,@aSession,a,0,a^.PID);		
 				ClientList.add(a);
 			end
 			else
 			begin
+				FreeMem(a);
 				CQ_i_addLog(CQLOG_ERROR,'JustChatS | Server (Client Mode) | ERR:'+NumToChar(SocketError),'Fail to connect to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+				delay(30*1000);
 			end;
 
 		end;
@@ -224,7 +235,7 @@ Begin
 
 end;
 
-procedure Broadcast(MSG:ansistring);
+procedure Broadcast(MSG:ansistring);overload;
 Var
 	i:longint;
 	P:ansistring;
@@ -246,6 +257,25 @@ begin
 		a:=ClientList[i];
 		write(a^.Sout,p+MSG);
 	end;
+end;
+
+
+procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
+Var
+	P:ansistring;
+	len:longint;
+begin
+	if aClient=nil then exit();
+	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
+	CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Clients:'+NumToChar(ClientList.Count),Base64_Encryption(MSG));
+	len:=length(MSG);
+	{CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Clients:'+NumToChar(ClientList.Count),
+	NumtoChar(len div (2<<23))+' '+
+	NumtoChar(len mod (2<<23) div (2<<15))+' '+
+	NumtoChar(len mod (2<<15) div (2<<7))+' '+
+	NumtoChar(len mod (2<<7)) );}
+	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7));
+	write(aClient^.Sout,p+MSG);
 end;
 
 initialization
