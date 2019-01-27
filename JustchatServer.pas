@@ -57,17 +57,29 @@ Var
   
 procedure StertServer();
 Begin
-	S:=fpSocket (AF_INET,SOCK_STREAM,0);
-	if SocketError<>0 then CQ_i_addLog(CQLOG_INFO,'JustChatS | StartServer','Socket : ');
-	SAddr.sin_family:=AF_INET;
-	SAddr.sin_port:=htons(ServerConfig.port);
-	SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
-	if fpBind(S,@SAddr,sizeof(saddr))=-1 then begin
-        CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ');
-    end;
-	if fpListen (S,1)=-1 then begin
-        CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Listen : ');
-    end;
+	if upcase(ServerConfig.mode)='SERVER' then begin
+		S:=fpSocket (AF_INET,SOCK_STREAM,0);
+		if SocketError<>0 then CQ_i_addLog(CQLOG_INFO,'JustChatS | StartServer','Socket : ');
+		SAddr.sin_family:=AF_INET;
+		SAddr.sin_port:=htons(ServerConfig.port);
+		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
+		if fpBind(S,@SAddr,sizeof(saddr))=-1 then begin
+			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ');
+		end;
+		if fpListen (S,1)=-1 then begin
+			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Listen : ');
+		end;
+	end	else
+	if upcase(ServerConfig.mode)='CLIENT' then begin
+		S:=fpSocket (AF_INET,SOCK_STREAM,0);
+		if SocketError<>0 then CQ_i_addLog(CQLOG_INFO,'JustChatS | StartServer (Client Mode)','Socket : ');
+		SAddr.sin_family:=AF_INET;
+		SAddr.sin_port:=htons(ServerConfig.port);
+		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
+	end else
+	begin
+		CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','A Unknown mod given');
+	end;
 End;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);stdcall;
@@ -132,7 +144,9 @@ Var
 Begin
 	
 	//if NetAddrToStr(a^.FromName.sin_addr)='132.232.30.14' then begin
-		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Accept',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+		if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Accept',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+		else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Connected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+		else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession','A Unknown mod given');
 		try
 			repeat
 				read(a^.sIn,c);
@@ -143,7 +157,10 @@ Begin
 			until false;
 		except
 			on e:Exception do begin
-			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
+			if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+			else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Disconnected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+			else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession Close','A Unknown mod given');
+			
 			ClientList.Remove(a);
 			FreeMem(a);
 			end;
@@ -163,18 +180,48 @@ procedure listening();stdcall;
 Var
 	a : PClient;
 Begin
-	CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Server started on '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+	if upcase(ServerConfig.mode)='SERVER' then begin
+		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Server started on '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+		while true do begin
+			new(a);
+			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Waiting for Connect from Client, run now sock_cli in an other tty');
+			Accept(S,a^.FromName,a^.Sin,a^.Sout);
+			Reset(a^.Sin);
+			ReWrite(a^.Sout);
+			a^.buff:='';
+			createthread(nil,0,@aSession,a,0,a^.PID);		
+			ClientList.add(a);
+		end;
+	end	else
+	if upcase(ServerConfig.mode)='CLIENT' then begin
+		while true do begin
+			repeat
+			until ClientList.Count=0;
 
-	while true do begin
-		new(a);
-        CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Waiting for Connect from Client, run now sock_cli in an other tty');
-		Accept(S,a^.FromName,a^.Sin,a^.Sout);
-		Reset(a^.Sin);
-		ReWrite(a^.Sout);
-		a^.buff:='';
-		createthread(nil,0,@aSession,a,0,a^.PID);		
-		ClientList.add(a);
+			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server (Client Mode)','Connecting to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+			new(a);
+			if Connect(S,a^.FromName,a^.Sin,a^.Sout) then begin
+				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server (Client Mode)','Connected to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+				Reset(a^.Sin);
+				ReWrite(a^.Sout);
+				a^.buff:='';
+				createthread(nil,0,@aSession,a,0,a^.PID);		
+				ClientList.add(a);
+			end
+			else
+			begin
+				CQ_i_addLog(CQLOG_ERROR,'JustChatS | Server (Client Mode) | ERR:'+NumToChar(SocketError),'Fail to connect to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
+			end;
+
+		end;
+	end else
+	begin
+		CQ_i_addLog(CQLOG_FATAL,'JustChatS | Server','A Unknown mod given');
 	end;
+
+
+
+
 end;
 
 procedure Broadcast(MSG:ansistring);
