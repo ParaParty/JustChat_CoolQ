@@ -240,6 +240,9 @@ Begin
 
         A.Destroy;
     end;
+
+
+    if HostAddrToStr(ServerConfig.ip)='127.0.0.1' then ServerConfig.ip:=HostToNet(ServerConfig.ip);
 End;
 
 end.
