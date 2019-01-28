@@ -66,8 +66,10 @@ Begin
 	PonMessageReceived:=@onMessageReceived;
 	PMSG_Register:=@MSG_Register;
 	StertServer();
-	createthread(nil,0,@listening,nil,0,JustchatServer_PID);	
+	createthread(nil,0,@listening,nil,0,JustchatServer_PID);
 
+	if (upcase(ServerConfig.mode)='CLIENT') and (ClientPulse.Interval>0) then
+		SetTimer(0,2, ClientPulse.Interval, @MSG_Pulse);
 {$IFDEF FPC}
 	exit(0)
 {$ELSE}

@@ -17,6 +17,9 @@ Var
                         ID:ansistring;
                         ConsoleName:ansistring;
                 end;
+    ClientPulse : record
+                        Interval : int64;
+                    end;
     MessageFormat: record
                         Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead :ansistring;
                     end;
@@ -228,6 +231,8 @@ Begin
     else
     begin
         A:= TIniFile.Create(CQ_i_getAppDirectory+'message.ini',true);
+		A.CacheUpdates:= true;
+		
         MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
         A.WriteString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
 
@@ -243,6 +248,9 @@ Begin
 
 
     if HostAddrToStr(ServerConfig.ip)='127.0.0.1' then ServerConfig.ip:=HostToNet(ServerConfig.ip);
+
+
+    ClientPulse.Interval:=20*1000;
 End;
 
 end.

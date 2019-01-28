@@ -110,6 +110,9 @@ Var
 	
 	MSGPack	: PMessagePack;
 Begin
+
+	//CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | checkMessage | Client '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
+
 	position:=pos(MessageHeader,a^.buff);
 	if length(a^.buff)>=position-1+length(MessageHeader)+4 then begin
 		len:=longint(
@@ -139,10 +142,15 @@ Begin
 		write(a^.Sout,PulseHeader+#$00+#$00+#$00+#$00);
 	end;
 }
-	if length(a^.buff)>=1024*16 then begin
+	if (length(a^.buff)>=1024*16) then begin
         CQ_i_addLog(CQLOG_ERROR,'JustChatS | MessageCheck',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port)+' : buff too long');
         raise Exception.Create('buff too long');
     end;
+
+	if (pos(#$1A,a^.buff)<>0) then begin
+        CQ_i_addLog(CQLOG_INFO,'JustChatS | MessageCheck',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port)+' : Client close the connection');
+        raise Exception.Create('closed by client');
+	end;
 End;
 
 procedure aSession(a:PClient);stdcall;
@@ -267,7 +275,7 @@ Var
 begin
 	if aClient=nil then exit();
 	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
-	CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Clients:'+NumToChar(ClientList.Count),Base64_Encryption(MSG));
+	CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Client '+NetAddrToStr(aClient^.FromName.sin_addr)+':'+NumToChar(aClient^.FromName.sin_port),Base64_Encryption(MSG));
 	len:=length(MSG);
 	{CQ_i_addLog(CQLOG_INFOSEND,'JustChatS | Broadcast | Clients:'+NumToChar(ClientList.Count),
 	NumtoChar(len div (2<<23))+' '+
