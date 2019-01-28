@@ -81,17 +81,17 @@ begin
             end
             else
 			if msgtype=TMsgType_Info then begin
-				eventType:=  S.FindPath('event').asInt64;
-
 				P:=S.GetEnumerator;
 				back:='';
 				while P.MoveNext do begin
 					if upcase(P.Current.Key)='CONTENT' then begin
-						back:=S.FindPath(P.Current.Key).AsString;
-					end else
+						back:=Base64_Decryption(S.FindPath(P.Current.Key).AsString);
+					end;
 				end;
 				
 				if back='' then begin
+					eventType:=S.FindPath('event').asInt64;
+
 					if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
 					if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
 					if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
@@ -119,6 +119,10 @@ begin
 			else
 			if (msgtype=TMSGTYPE_REGISTRATION) then begin
 				CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a registration message.');
+			end
+			else
+			if (msgtype=TMSGTYPE_REGISTRATION) then begin
+
 			end
 			else
             begin
