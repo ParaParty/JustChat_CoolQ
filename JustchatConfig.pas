@@ -16,12 +16,11 @@ Var
                         mode:ansistring;
                         ID:ansistring;
                         ConsoleName:ansistring;
+
+                        pulseInterval : int64;
                 end;
-    ClientPulse : record
-                        Interval : int64;
-                    end;
     MessageFormat: record
-                        Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead :ansistring;
+                        Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview :ansistring;
                     end;
 
 procedure Init_Config();
@@ -89,12 +88,31 @@ Begin
     serverNode.add('port',ServerConfig.port);
     serverNode.add('ID',ServerConfig.ID);
     serverNode.add('name',ServerConfig.ConsoleName);
+    serverNode.add('pulseInterval',ServerConfig.pulseInterval);
     configNode.add('groupid',Justchat_BindGroup);
     assign(T,CQ_i_getAppDirectory+'config.json');rewrite(T);
     writeln(T,full.FormatJson);
 	close(T);
     Full.Destroy;
 End;
+
+procedure SaveLocaleToJson();
+Var
+    Full:TJsonObject;
+    T:Text;
+Begin
+    Full:=TJsonObject.Create;
+	Full.add('Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
+	Full.add('Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
+	Full.add('Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
+	Full.add('Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+    assign(T,CQ_i_getAppDirectory+'message.json');rewrite(T);
+    writeln(T,full.FormatJson);
+	close(T);
+    Full.Destroy;
+End;
+
+
 
 procedure Init_Config();
 Var
@@ -110,6 +128,7 @@ Begin
 		ServerConfig.port:=54321;
 		ServerConfig.ID:=Guid_Gen;
 		ServerConfig.ConsoleName:='';
+		ServerConfig.pulseInterval:=20;
 		
         B:= Json_OpenFromFile(CQ_i_getAppDirectory+'config.json');
 		E:=B.GetEnumerator;
@@ -134,6 +153,9 @@ Begin
 					if upcase(EE.Current.Key)='NAME' then begin
 						ServerConfig.ConsoleName:=BB.FindPath(EE.Current.Key).AsString;
 					end else
+					if upcase(EE.Current.Key)='PULSEINTERVAL' then begin
+						ServerConfig.pulseInterval:=BB.FindPath(EE.Current.Key).AsInt64;
+					end;
 				end;
 				
             end else
@@ -163,6 +185,10 @@ Begin
 		if (upcase(ServerConfig.mode)<>'SERVER') and (upcase(ServerConfig.mode)<>'CLIENT') then begin
             ServerConfig.mode:='server';
         end;
+        if ServerConfig.pulseInterval<0 then begin
+            ServerConfig.pulseInterval:=20;
+        end;
+
         SaveConfigToJson();
     end
     else
@@ -195,6 +221,11 @@ Begin
 				A.WriteString('server','name',ServerConfig.ConsoleName);
 			end;
         end;
+        ServerConfig.pulseInterval:=A.ReadInt64('server','pulseInterval',20);
+		if ServerConfig.pulseInterval<0 then begin
+			A.WriteInt64('server','pulseInterval',20);
+			ServerConfig.pulseInterval:=20;
+		end;
         Justchat_BindGroup:=A.ReadInt64('config','groupid',0);
         if Justchat_BindGroup=0 then begin
             A.WriteInt64('config','groupid',0);
@@ -209,6 +240,7 @@ Begin
     MessageFormat.Msg_INFO_Join:='%SENDER% joined the game.';
     MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
+    MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%][%SENDER%]: %CONTENT%';
 
 
     if Is_FileStatus(CQ_i_getAppDirectory+'message.json')=0 then begin
@@ -223,10 +255,15 @@ Begin
             end else
             if upcase(E.Current.Key)='MSG_INFO_PLAYERDEAD' then begin
                 MessageFormat.Msg_INFO_PlayerDead:=B.FindPath(E.Current.Key).AsString;
+            end else
+            if upcase(E.Current.Key)='MSG_TEXT_OVERVIEW' then begin
+                MessageFormat.Msg_Text_Overview:=B.FindPath(E.Current.Key).AsString;
             end;
         end;
         E.Destroy;
         B.Destroy;
+        
+        SaveLocaleToJson();
     end
     else
     begin
@@ -242,6 +279,9 @@ Begin
         MessageFormat.Msg_INFO_PlayerDead:=A.ReadString('message','Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
         A.WriteString('message','Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
 
+        MessageFormat.Msg_Text_Overview:=A.ReadString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+        A.WriteString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+
 
         A.Destroy;
     end;
@@ -249,8 +289,6 @@ Begin
 
     if HostAddrToStr(ServerConfig.ip)='127.0.0.1' then ServerConfig.ip:=HostToNet(ServerConfig.ip);
 
-
-    ClientPulse.Interval:=20*1000;
 End;
 
 end.

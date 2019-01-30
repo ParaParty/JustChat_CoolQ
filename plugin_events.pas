@@ -24,6 +24,10 @@ Function code_eventRequest_AddFriend(subType,sendTime:longint;fromQQ:int64;const
 Function code_eventRequest_AddGroup(subType,sendTime:longint;fromGroup,fromQQ:int64;msg:ansistring;responseFlag:Pchar):longint;
 			
 implementation
+
+Var
+	pluginEnabledEver:boolean;
+
 {
 * Type=1001 酷Q启动
 * 无论本应用是否被启用，本函数都会在酷Q启动后执行一次，请在这里执行应用初始化代码。
@@ -61,6 +65,12 @@ End;
 Function code_eventEnable:longint;
 Begin
 
+	if pluginEnabledEver then begin
+		CQ_i_addLog(CQLOG_WARNING,'JustChat','Please RESTART your CoolQ instead of re-enabling the plugin.');
+		exit(0);
+	end;
+
+	pluginEnabledEver:=true;
 	Init_Config();
 
 	PonMessageReceived:=@onMessageReceived;
@@ -68,8 +78,9 @@ Begin
 	StertServer();
 	createthread(nil,0,@listening,nil,0,JustchatServer_PID);
 
-	if (upcase(ServerConfig.mode)='CLIENT') and (ClientPulse.Interval>0) then
-		SetTimer(0,2, ClientPulse.Interval, @MSG_Pulse);
+	if (upcase(ServerConfig.mode)='CLIENT') and (ServerConfig.pulseInterval>0) then
+		SetTimer(0,2, ServerConfig.pulseInterval, @MSG_Pulse);
+
 {$IFDEF FPC}
 	exit(0)
 {$ELSE}
@@ -286,5 +297,8 @@ Begin
 {$ENDIF}
 	//关于返回值说明, 见“code_eventPrivateMsg”函数
 End;
+
+initialization
+	pluginEnabledEver:=false;
 
 end.

@@ -76,7 +76,11 @@ begin
                 //if content[length(content)]='}' then delete(content,length(content),1);
 
                 //CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
-                CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]['+CQ_CharEncode(world_display,false)+']'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
+				back:=MessageFormat.Msg_Text_Overview;
+				Message_Replace(back,'%WORLD_DISPLAY%',CQ_CharEncode(world_display,false));
+				Message_Replace(back,'%SENDER%',CQ_CharEncode(sender,false));
+				Message_Replace(back,'%CONTENT%',CQ_CharEncode(content,false));
+                CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 
             end
             else
