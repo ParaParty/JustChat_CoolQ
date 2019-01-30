@@ -436,6 +436,24 @@ Begin
     exit(s);
 End;
 
+function getGroupName(groupID:int64):ansistring;
+Var
+	i				:	longint;
+	GroupList		:	CQ_Type_GroupList;
+Begin
+	result:=NumToChar(groupID);
+	if CQ_i_getGroupList(GroupList)=0 then begin
+		for i:=0 to GroupList.l-1 do
+			if GroupList.s[i].groupID=groupID then
+				exit(GroupList.s[i].name);
+	end
+	else
+	begin
+		exit();
+	end;
+End;
+
+
 procedure MSG_PackAndSend(
 			subType,MsgID			:longint;
 			fromgroup,fromQQ		:int64;
@@ -461,7 +479,7 @@ Begin
         sender:=Base64_Encryption(GetNick(fromGroup,fromQQ));
         S.add('sender',sender);
         S.add('world',NumToChar(fromGroup));
-        S.add('world_display',Base64_Encryption(NumToChar(fromGroup)));
+        S.add('world_display',Base64_Encryption(getGroupName(fromGroup)));
         S.add('content',content);
         Broadcast(S.AsJSON);
         if S<>nil then S.Destroy;
