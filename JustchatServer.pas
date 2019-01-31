@@ -46,6 +46,7 @@ implementation
 Const
 	MessageHeader = #$11+#$45+#$14;
 	//PulseHeader = #$70+#$93+#$94;
+	SUBSTRING = #$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A;
 	
 	Const_ThreadWaitingTime = 5000;
 	
@@ -147,7 +148,7 @@ Begin
         raise Exception.Create('buff too long');
     end;
 
-	if (pos(#$1A,a^.buff)<>0) then begin
+	if (pos(SUBSTRING,a^.buff)<>0) then begin
         CQ_i_addLog(CQLOG_INFO,'JustChatS | MessageCheck',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port)+' : Client close the connection');
         raise Exception.Create('closed by client');
 	end;
