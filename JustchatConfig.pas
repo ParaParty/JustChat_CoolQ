@@ -240,7 +240,7 @@ Begin
     MessageFormat.Msg_INFO_Join:='%SENDER% joined the game.';
     MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
-    MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%][%SENDER%]: %CONTENT%';
+    MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
 
 
     if Is_FileStatus(CQ_i_getAppDirectory+'message.json')=0 then begin
