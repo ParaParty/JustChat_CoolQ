@@ -2,7 +2,7 @@ unit Justchat;
 {$MODE DELPHI}
 interface
 uses
-    sysutils,classes{,inifiles},
+    sysutils,classes,inifiles,
     fpjson,jsonparser,RegExpr,
     sockets,
     CoolQSDK,
@@ -19,7 +19,11 @@ procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
 
 
 implementation
-
+type
+	ImageInfo = record
+					url,md5:ansistring;
+					width,height,size:int64;
+				end;
 
 function TextMessageContentUnpack(a:TJSONData):ansistring;
 Var
@@ -217,21 +221,19 @@ Begin
     exit(NumToChar(FromQQ));
 End;
 
-function GetImage(s:ansistring):ansistring;
-{
-	Var
-	A:TCustomIniFile;
-	b:ansistring;
-}
+function GetImage(s:ansistring):ImageInfo;
+Var
+	A:TIniFile;
 Begin
-{
-	A := TCustomIniFile('data/image/'+s+'.cqimg',false);
-	b:=A.ReadString('image','url','');
+	A := TIniFile.Create('data/image/'+s+'.cqimg',false);
+	result.url:='https://gchat.qpic.cn/gchatpic_new//--'+copy(s,1,pos('.',s)-1)+'/0';
+	result.md5:=A.ReadString('image','md5','');
+	result.width:=A.ReadInt64('image','width',0);
+	result.height:=A.ReadInt64('image','height',0);
+	result.size:=A.ReadInt64('image','size',0);
 	//Message_Replace(b,'vuin='+NumToChar(CQ_i_getLoginQQ()),'');
 	A.Destroy;
-	exit(b);
-}
-	exit('https://gchat.qpic.cn/gchatpic_new//--'+copy(s,1,pos('.',s)-1)+'/0');
+	exit();
 End;
 
 Type
@@ -284,11 +286,27 @@ Begin
 	end;
 End;
 
+
+procedure Params_Free(p:TList);
+Var
+	i,c	:	longint;
+	d	:	PParamPair;
+Begin
+	c:=p.count;
+	for i:=c-1 downto 0 do begin
+		d:=p[i];
+		p.delete(i);
+		dispose(d);
+	end;
+	p.free;
+End;
+
 function StringToOBJ(fromGroup,fromQQ:int64;s:ansistring):TJsonObject;
 Var
-	obj:TJsonObject;
-	func:ansistring;
-	P:TList;
+	obj		:TJsonObject;
+	func	:ansistring;
+	P		:TList;
+	aimage	:ImageInfo;
 Begin
 	obj:=TJsonObject.Create;
 	if (s[1]='[') and (s[length(s)]=']') then begin
@@ -304,7 +322,8 @@ Begin
 			if p<>nil then begin
 				obj.add('function',func);
 				obj.add('target',Base64_Encryption('@'+GetNick(fromGroup,CharToNum(Params_Get(p,'qq')))));
-				P.free;
+				Params_Free(p);
+				//P.free;
 			end
 			else
 			begin
@@ -318,9 +337,15 @@ Begin
 			p:=Params_Split(s);
 			if p<>nil then begin
 				obj.add('function',func);
-				obj.add('url',GetImage(Params_Get(p,'file')));
+				aimage:=GetImage(Params_Get(p,'file'));
+				obj.add('url',aimage.url);
+				obj.add('md5',aimage.md5);
+				obj.add('height',aimage.height);
+				obj.add('width',aimage.width);
+				obj.add('size',aimage.size);
 				obj.add('content',Base64_Encryption('[图片]'));
-				P.free;
+				Params_Free(p);
+				//P.free;
 			end
 			else
 			begin

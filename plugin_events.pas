@@ -79,7 +79,7 @@ Begin
 	createthread(nil,0,@listening,nil,0,JustchatServer_PID);
 
 	if (upcase(ServerConfig.mode)='CLIENT') and (ServerConfig.pulseInterval>0) then
-		SetTimer(0,2, ServerConfig.pulseInterval, @MSG_Pulse);
+		SetTimer(0,2, ServerConfig.pulseInterval*1000, @MSG_Pulse);
 
 {$IFDEF FPC}
 	exit(0)
