@@ -21,7 +21,7 @@ procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
 implementation
 type
 	ImageInfo = record
-					url,md5:ansistring;
+					url,md5,extension:ansistring;
 					width,height,size:int64;
 				end;
 
@@ -227,6 +227,7 @@ Var
 Begin
 	A := TIniFile.Create('data/image/'+s+'.cqimg',false);
 	result.url:='https://gchat.qpic.cn/gchatpic_new//--'+copy(s,1,pos('.',s)-1)+'/0';
+	result.extension:=copy(s,pos('.',s)+1,length(s));
 	result.md5:=A.ReadString('image','md5','');
 	result.width:=A.ReadInt64('image','width',0);
 	result.height:=A.ReadInt64('image','height',0);
@@ -307,6 +308,7 @@ Var
 	func	:ansistring;
 	P		:TList;
 	aimage	:ImageInfo;
+	back		:ansistring;
 Begin
 	obj:=TJsonObject.Create;
 	if (s[1]='[') and (s[length(s)]=']') then begin
@@ -339,6 +341,7 @@ Begin
 				obj.add('function',func);
 				aimage:=GetImage(Params_Get(p,'file'));
 				obj.add('url',aimage.url);
+				obj.add('extension',aimage.extension);
 				obj.add('md5',aimage.md5);
 				obj.add('height',aimage.height);
 				obj.add('width',aimage.width);
@@ -353,6 +356,60 @@ Begin
 				obj:=nil;
 			end;
 		end
+		{else
+		if (func='CQ:hb') then
+		begin
+			p:=Params_Split(s);
+			if p<>nil then begin
+				obj.add('function',func);
+				obj.add('title',Base64_Encryption(Params_Get(p,'title')));
+				Params_Free(p);
+				//P.free;
+			end
+			else
+			begin
+				obj.Destroy;
+				obj:=nil;
+			end;
+		end
+		else
+		if (func='CQ:share') then
+		begin
+			p:=Params_Split(s);
+			if p<>nil then begin
+				obj.add('function',func);
+				obj.add('title',Base64_Encryption(Params_Get(p,'title')));
+				obj.add('url',Base64_Encryption(Params_Get(p,'url')));
+				obj.add('content',Base64_Encryption(Params_Get(p,'content')));
+				obj.add('image',Base64_Encryption(Params_Get(p,'image')));
+				Params_Free(p);
+				//P.free;
+			end
+			else
+			begin
+				obj.Destroy;
+				obj:=nil;
+			end;
+		end
+		else
+		if (func='CQ:rich') then
+		begin
+			p:=Params_Split(s);
+			if p<>nil then begin
+				obj.add('function',func);
+				obj.add('url',Base64_Encryption(Params_Get(p,'url')));
+				back:=Params_Get(p,'text');
+				if back='' then back:=Params_Get(p,'brief');
+				obj.add('text',Base64_Encryption(back));
+				Params_Free(p);
+				//P.free;
+			end
+			else
+			begin
+				obj.Destroy;
+				obj:=nil;
+			end;
+		end}
 		else
 		begin
 			obj.Destroy;

@@ -66,12 +66,14 @@ Begin
 		if SocketError<>0 then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
 		SAddr.sin_family:=AF_INET;
 		SAddr.sin_port:=htons(ServerConfig.port);
-		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
+		SAddr.sin_addr:=ServerConfig.ip;
 		if fpBind(S,@SAddr,sizeof(saddr))=-1 then begin
-			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
+			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Bind : ERR:'+NumToChar(SocketError)+CRLF+
+									'Fail to bind to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 		end;
 		if fpListen (S,1)=-1 then begin
-			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Listen : ERR:'+NumToChar(SocketError));
+			CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Listen : ERR:'+NumToChar(SocketError)+CRLF+
+									'Fail to listen on '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 		end;
 	end	else
 	if upcase(ServerConfig.mode)='CLIENT' then begin

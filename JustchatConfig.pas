@@ -112,8 +112,6 @@ Begin
     Full.Destroy;
 End;
 
-
-
 procedure Init_Config();
 Var
 	A:TIniFile;
@@ -124,7 +122,7 @@ Begin
             
     if Is_FileStatus(CQ_i_getAppDirectory+'config.json')=0 then begin
 		ServerConfig.mode:='server';
-		ServerConfig.IP:=StrToNetAddr('127.0.0.1');
+		ServerConfig.IP:=StrToNetAddr('0.0.0.0');
 		ServerConfig.port:=54321;
 		ServerConfig.ID:=Guid_Gen;
 		ServerConfig.ConsoleName:='';
@@ -286,8 +284,6 @@ Begin
         A.Destroy;
     end;
 
-
-    if HostAddrToStr(ServerConfig.ip)='127.0.0.1' then ServerConfig.ip:=HostToNet(ServerConfig.ip);
 
 End;
 
