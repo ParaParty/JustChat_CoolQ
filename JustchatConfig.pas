@@ -194,8 +194,8 @@ Begin
         
         A:= TIniFile.Create(CQ_i_getAppDirectory+'config.ini',false);
 		A.CacheUpdates:= true;
-        ServerConfig.ip:=StrToHostAddr(A.ReadString('server','ip','0.0.0.0'));
-        if HostAddrToStr(ServerConfig.ip)='0.0.0.0' then begin
+        ServerConfig.ip:=StrToNetAddr(A.ReadString('server','ip','0.0.0.0'));
+        if NetAddrToStr(ServerConfig.ip)='0.0.0.0' then begin
             A.WriteString('server','ip','0.0.0.0');
         end;
         ServerConfig.port:=A.ReadInt64('server','port',54321);
