@@ -9,6 +9,7 @@ uses
     JustchatConfig,JustchatServer;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);
+Procedure onClientDisconnect(aClient:PClient);
 procedure MSG_PackAndSend(
 			subType,MsgID			:longint;
 			fromgroup,fromQQ		:int64;
@@ -127,6 +128,10 @@ begin
 			else
 			if (msgtype=TMSGTYPE_REGISTRATION) then begin
 				CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a registration message.');
+				aMSGPack^.client^.info.name:=Base64_Decryption(S.FindPath('name').asString);
+				back:=MessageFormat.Event_online;
+				Message_Replace(back,'%NAME%',aMSGPack^.client^.info.name);
+				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
 			if (msgtype=TMSGTYPE_REGISTRATION) then begin
@@ -156,6 +161,14 @@ begin
     end;
 end;
 
+Procedure onClientDisconnect(aClient:PClient);
+Var
+	back	:ansistring;
+Begin
+	back := MessageFormat.Event_offline;
+	Message_Replace(back,'%NAME%',aClient^.info.name);
+	CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+End;
 
 Function UTF8First_Remain(a:longint):longint;
 Begin

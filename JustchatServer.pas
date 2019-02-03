@@ -14,6 +14,9 @@ Type
 				PID		: LongWord;
 				
 				buff	: ansistring;
+				info	: record
+							name:ansistring;
+						end;
 			end;
 	PClient = ^Client;
 	
@@ -26,11 +29,13 @@ Type
 	PMessagePack= ^MessagePack;
 	
 	TonMessageReceived = procedure(aMSGPack:PMessagePack);
+	TonClientDisconnect = procedure(aClient:PClient);
 	TMSG_Register = function():ansistring;
 
 
 Var
     PonMessageReceived:pointer=nil;
+    PonClientDisconnect:pointer=nil;
     PMSG_Register:pointer=nil;
     JustchatServer_PID:LongWord;
 
@@ -171,16 +176,21 @@ Begin
 				a^.buff:=a^.buff+c;
 				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Readin '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
 				checkMessage(a);
-				
-			until false;
-		except
-			on e:Exception do begin
-			if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
-			else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Disconnected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
-			else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession Close','A Unknown mod given');
+			//until false;
+			until eof(a^.sIn);
 			
 			ClientList.Remove(a);
+			if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
 			FreeMem(a);
+		except
+			on e:Exception do begin
+				if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+				else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Disconnected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+				else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession Close','A Unknown mod given');
+				
+				ClientList.Remove(a);
+				if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
+				FreeMem(a);
 			end;
 		end;
 	//end

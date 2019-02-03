@@ -20,7 +20,8 @@ Var
                         pulseInterval : int64;
                 end;
     MessageFormat: record
-                        Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview :ansistring;
+                        Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
+                        Event_online,Event_offline :ansistring;
                     end;
 
 procedure Init_Config();
@@ -106,6 +107,8 @@ Begin
 	Full.add('Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
 	Full.add('Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
 	Full.add('Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+	Full.add('Event_online',MessageFormat.Event_online);
+	Full.add('Event_offline',MessageFormat.Event_offline);
     assign(T,CQ_i_getAppDirectory+'message.json');rewrite(T);
     writeln(T,full.FormatJson);
 	close(T);
@@ -239,6 +242,8 @@ Begin
     MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
     MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
+    MessageFormat.Event_online:='Server %NAME% is now online.';
+    MessageFormat.Event_offline:='Server %NAME% is now offline.';
 
 
     if Is_FileStatus(CQ_i_getAppDirectory+'message.json')=0 then begin
@@ -256,7 +261,13 @@ Begin
             end else
             if upcase(E.Current.Key)='MSG_TEXT_OVERVIEW' then begin
                 MessageFormat.Msg_Text_Overview:=B.FindPath(E.Current.Key).AsString;
-            end;
+            end else
+            if upcase(E.Current.Key)='EVENT_ONLINE' then begin
+                MessageFormat.Event_online:=B.FindPath(E.Current.Key).AsString;
+            end else
+            if upcase(E.Current.Key)='EVENT_OFFLINE' then begin
+                MessageFormat.Event_offline:=B.FindPath(E.Current.Key).AsString;
+            end else
         end;
         E.Destroy;
         B.Destroy;
@@ -279,7 +290,12 @@ Begin
 
         MessageFormat.Msg_Text_Overview:=A.ReadString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
         A.WriteString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+        
+        MessageFormat.Msg_Text_Overview:=A.ReadString('message','Event_online',MessageFormat.Msg_Text_Overview);
+        A.WriteString('message','Event_online',MessageFormat.Event_online);
 
+        MessageFormat.Event_offline:=A.ReadString('message','Event_offline',MessageFormat.Msg_Text_Overview);
+        A.WriteString('message','Event_offline',MessageFormat.Msg_Text_Overview);
 
         A.Destroy;
     end;

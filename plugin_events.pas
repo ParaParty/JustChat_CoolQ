@@ -75,6 +75,7 @@ Begin
 
 	PonMessageReceived:=@onMessageReceived;
 	PMSG_Register:=@MSG_Register;
+	PonClientDisconnect:=@onClientDisconnect;
 	StertServer();
 	createthread(nil,0,@listening,nil,0,JustchatServer_PID);
 
