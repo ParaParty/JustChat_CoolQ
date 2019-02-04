@@ -144,7 +144,7 @@ begin
 				if j<>0 then back:=back+CRLF;
 				for i:=0 to j-1 do begin
 					back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
-					if i<>j then back:=back+', ';
+					if i<>j-1 then back:=back+', ';
 				end;
 				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
