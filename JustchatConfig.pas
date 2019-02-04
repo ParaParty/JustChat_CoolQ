@@ -21,6 +21,7 @@ Var
                 end;
     MessageFormat: record
                         Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
+                        Msg_Server_Playerlist,
                         Event_online,Event_offline :ansistring;
                     end;
 
@@ -33,6 +34,10 @@ Const
     TMSGTYPE_REGISTRATION = 1;
     TMsgType_INFO = 100;
     TMsgType_MESSAGE = 101;
+
+    TMSGTYPE_PLAYERLIST = 200;
+    TMSGTYPE_PLAYERLIST_Request = 0;
+    TMSGTYPE_PLAYERLIST_Response = 1;
 
     TMsgType_INFO_Join = 1;
     TMsgType_INFO_Disconnect = 2;
@@ -107,6 +112,7 @@ Begin
 	Full.add('Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
 	Full.add('Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
 	Full.add('Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
+	Full.add('Msg_Server_Playerlist',MessageFormat.Msg_Server_Playerlist);
 	Full.add('Event_online',MessageFormat.Event_online);
 	Full.add('Event_offline',MessageFormat.Event_offline);
     assign(T,CQ_i_getAppDirectory+'message.json');rewrite(T);
@@ -242,6 +248,7 @@ Begin
     MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
     MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
+    MessageFormat.Msg_Server_Playerlist:='[%SERVER%] There are %NOW%/%MAX% players online.';
     MessageFormat.Event_online:='Server %NAME% is now online.';
     MessageFormat.Event_offline:='Server %NAME% is now offline.';
 
@@ -267,6 +274,9 @@ Begin
             end else
             if upcase(E.Current.Key)='EVENT_OFFLINE' then begin
                 MessageFormat.Event_offline:=B.FindPath(E.Current.Key).AsString;
+            end else
+            if upcase(E.Current.Key)='MSG_SERVER_PLAYERLIST' then begin
+                MessageFormat.Msg_Server_Playerlist:=B.FindPath(E.Current.Key).AsString;
             end else
         end;
         E.Destroy;
@@ -296,6 +306,9 @@ Begin
 
         MessageFormat.Event_offline:=A.ReadString('message','Event_offline',MessageFormat.Msg_Text_Overview);
         A.WriteString('message','Event_offline',MessageFormat.Msg_Text_Overview);
+
+        MessageFormat.Msg_Server_Playerlist:=A.ReadString('message','Msg_Server_Playerlist',MessageFormat.Msg_Text_Overview);
+        A.WriteString('message','Msg_Server_Playerlist',MessageFormat.Msg_Text_Overview);
 
         A.Destroy;
     end;

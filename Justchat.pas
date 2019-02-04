@@ -17,7 +17,7 @@ procedure MSG_PackAndSend(
 			font					:longint);
 function MSG_Register():ansistring;
 procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
-
+procedure MSG_PlayerList();
 
 implementation
 type
@@ -61,6 +61,7 @@ Var
 	eventType:longint;
 
 	back:ansistring;
+	i,j:longint;
 begin
     try
 		if length(aMSGPack^.MSG)<=2 then begin
@@ -134,8 +135,18 @@ begin
 				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
-			if (msgtype=TMSGTYPE_REGISTRATION) then begin
-
+			if (msgtype=TMSGTYPE_PLAYERLIST) and (S.FindPath('subtype').asInt64=TMSGTYPE_PLAYERLIST_Response) then begin
+				back:=MessageFormat.Msg_Server_Playerlist;
+				Message_Replace(back,'%SERVER%',aMSGPack^.client^.info.name);
+				Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
+				Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
+				j:=S.FindPath('playerlist').count;
+				if j<>0 then back:=back+CRLF;
+				for i:=0 to j-1 do begin
+					back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
+					if i<>j then back:=back+', ';
+				end;
+				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
             begin
@@ -839,26 +850,23 @@ Var
     sender:ansistring;
     content:TJsonArray;
 Begin
-
-	if fromGroup=Justchat_BindGroup then begin
-		content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
-		//CQ_i_addLog(CQLOG_DEBUG,'',content.AsJson);
-		if (content=nil) or (content.count=0) then begin
-			if content<>nil then content.Destroy;
-			exit();
-		end;
-
-        S := TJsonObject.Create();
-        S.add('version',ServerPackVersion);
-        S.add('type',TMsgType_Message);
-        sender:=Base64_Encryption(GetNick(fromGroup,fromQQ));
-        S.add('sender',sender);
-        S.add('world',NumToChar(fromGroup));
-        S.add('world_display',Base64_Encryption(getGroupName(fromGroup)));
-        S.add('content',content);
-        Broadcast(S.AsJSON);
-        if S<>nil then S.Destroy;
+	content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
+	//CQ_i_addLog(CQLOG_DEBUG,'',content.AsJson);
+	if (content=nil) or (content.count=0) then begin
+		if content<>nil then content.Destroy;
+		exit();
 	end;
+
+	S := TJsonObject.Create();
+	S.add('version',ServerPackVersion);
+	S.add('type',TMsgType_Message);
+	sender:=Base64_Encryption(GetNick(fromGroup,fromQQ));
+	S.add('sender',sender);
+	S.add('world',NumToChar(fromGroup));
+	S.add('world_display',Base64_Encryption(getGroupName(fromGroup)));
+	S.add('content',content);
+	Broadcast(S.AsJSON);
+	if S<>nil then S.Destroy;
 End;
 
 function MSG_Register():ansistring;
@@ -879,5 +887,18 @@ procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
 Begin
 	Broadcast(MSG_Pulse_Packer);
 End;
+
+procedure MSG_PlayerList();
+Var
+	S:TJsonObject;
+Begin
+	S := TJsonObject.Create();
+	S.add('version',ServerPackVersion);
+	S.add('type',TMSGTYPE_PLAYERLIST);
+	S.add('subtype',TMSGTYPE_PLAYERLIST_Request);
+	Broadcast(S.AsJSON);
+	if S<>nil then S.Destroy;
+End;
+
 
 end.

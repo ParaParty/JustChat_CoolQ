@@ -4,7 +4,7 @@ interface
 
 uses
 	CoolQSDK,iconv,
-	sysutils,windows,
+	sysutils,windows,classes,
 	JustchatConfig,JustchatServer,Justchat;
 
 
@@ -131,16 +131,42 @@ Function code_eventGroupMsg(
 			fromgroup,fromQQ		:int64;
 			const fromAnonymous,msg	:ansistring;
 			font					:longint):longint;
-{Var
-	AnonymousMes	:	CQ_Type_GroupAnonymous;}
+Var
+	//AnonymousMes	:	CQ_Type_GroupAnonymous;
+	S	:	TStringlist;
+	command : ansistring;
 Begin
 	if fromQQ=80000000 then exit(EVENT_IGNORE);
 	{if (fromQQ=80000000) and (fromAnonymous<>'') then begin
 		CQ_Tools_TextToAnonymous(fromAnonymous,AnonymousMes);
 		//将匿名用户信息存到 AnonymousMes
 	end;}
-	if Justchat_BindGroup=0 then exit(EVENT_IGNORE);
+	if Justchat_BindGroup<>fromGroup then exit(EVENT_IGNORE);
 	MSG_PackAndSend(subType,MsgID,fromGroup,fromQQ,fromAnonymous,msg,font);
+
+	S					:= TStringlist.Create;
+	S.StrictDelimiter	:= True;
+	S.Delimiter			:= ' ';
+	S.DelimitedText		:= msg;
+
+	if (s.count>=1) then begin
+		command := upcase(s[0]);
+		if command[1]+command[2]+command[3]=ansistring('！') then command:='!'+copy(command,4,length(command));
+		if (command[1]='/') or (command[1]='!') then begin
+			delete(command,1,1);
+			if (command='LS') or (command='LIST')  then begin
+				MSG_PlayerList();
+			end;
+		end;
+
+
+
+	end;
+
+
+	S.Clear;
+	S.Free;
+
 		
 {$IFDEF FPC}
 	exit(EVENT_IGNORE);
