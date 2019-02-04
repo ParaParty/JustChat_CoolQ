@@ -723,7 +723,9 @@ Begin
 	else
 	begin
 		obj.add('type','text');
-		obj.add('content',Base64_Encryption(CQ_CharDecode(s)));
+		back:=s;
+		Message_Replace(back,CRLF,LF);
+		obj.add('content',Base64_Encryption(CQ_CharDecode(back)));
 	end;
 	exit(obj);
 End;
