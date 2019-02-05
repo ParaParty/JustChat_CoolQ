@@ -49,6 +49,7 @@ End;
 }
 Function code_eventExit:longint;
 Begin
+	if pluginEnabledEver then closeServer();
 {$IFDEF FPC}
 	exit(0);
 {$ELSE}

@@ -40,7 +40,8 @@ Var
     JustchatServer_PID:LongWord;
 
 
-procedure StertServer();
+procedure stertServer();
+procedure closeServer();
 procedure listening();stdcall;
 procedure Broadcast(MSG:ansistring);overload;
 procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
@@ -64,11 +65,11 @@ Var
 
   
   
-procedure StertServer();
+procedure stertServer();
 Begin
 	if upcase(ServerConfig.mode)='SERVER' then begin
 		S:=fpSocket (AF_INET,SOCK_STREAM,0);
-		if SocketError<>0 then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
+		if (SocketError<>0) and (SocketError<>183) then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
 		SAddr.sin_family:=AF_INET;
 		SAddr.sin_port:=htons(ServerConfig.port);
 		SAddr.sin_addr:=ServerConfig.ip;
@@ -91,6 +92,12 @@ Begin
 	begin
 		CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','A Unknown mod given');
 	end;
+End;
+
+procedure closeServer();
+Begin
+	CloseSocket(S);
+	CQ_i_addLog(CQLOG_INFO,'JustChatS | CloseServer','Server Closed.');
 End;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);stdcall;
