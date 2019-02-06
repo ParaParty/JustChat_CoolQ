@@ -84,7 +84,7 @@ Begin
 	end	else
 	if upcase(ServerConfig.mode)='CLIENT' then begin
 		S:=fpSocket (AF_INET,SOCK_STREAM,0);
-		if SocketError<>0 then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer (Client Mode)','Socket : ERR:'+NumToChar(SocketError));
+		if (SocketError<>0) and (SocketError<>183) then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
 		SAddr.sin_family:=AF_INET;
 		SAddr.sin_port:=htons(ServerConfig.port);
 		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
