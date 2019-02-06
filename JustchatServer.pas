@@ -14,6 +14,9 @@ Type
 				PID		: LongWord;
 				
 				buff	: ansistring;
+				info	: record
+							name:ansistring;
+						end;
 			end;
 	PClient = ^Client;
 	
@@ -26,16 +29,19 @@ Type
 	PMessagePack= ^MessagePack;
 	
 	TonMessageReceived = procedure(aMSGPack:PMessagePack);
+	TonClientDisconnect = procedure(aClient:PClient);
 	TMSG_Register = function():ansistring;
 
 
 Var
     PonMessageReceived:pointer=nil;
+    PonClientDisconnect:pointer=nil;
     PMSG_Register:pointer=nil;
     JustchatServer_PID:LongWord;
 
 
-procedure StertServer();
+procedure stertServer();
+procedure closeServer();
 procedure listening();stdcall;
 procedure Broadcast(MSG:ansistring);overload;
 procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
@@ -59,11 +65,11 @@ Var
 
   
   
-procedure StertServer();
+procedure stertServer();
 Begin
 	if upcase(ServerConfig.mode)='SERVER' then begin
 		S:=fpSocket (AF_INET,SOCK_STREAM,0);
-		if SocketError<>0 then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
+		if (SocketError<>0) and (SocketError<>183) then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
 		SAddr.sin_family:=AF_INET;
 		SAddr.sin_port:=htons(ServerConfig.port);
 		SAddr.sin_addr:=ServerConfig.ip;
@@ -78,7 +84,7 @@ Begin
 	end	else
 	if upcase(ServerConfig.mode)='CLIENT' then begin
 		S:=fpSocket (AF_INET,SOCK_STREAM,0);
-		if SocketError<>0 then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer (Client Mode)','Socket : ERR:'+NumToChar(SocketError));
+		if (SocketError<>0) and (SocketError<>183) then CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','Socket : ERR:'+NumToChar(SocketError));
 		SAddr.sin_family:=AF_INET;
 		SAddr.sin_port:=htons(ServerConfig.port);
 		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
@@ -86,6 +92,12 @@ Begin
 	begin
 		CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','A Unknown mod given');
 	end;
+End;
+
+procedure closeServer();
+Begin
+	CloseSocket(S);
+	CQ_i_addLog(CQLOG_INFO,'JustChatS | CloseServer','Server Closed.');
 End;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);stdcall;
@@ -171,16 +183,21 @@ Begin
 				a^.buff:=a^.buff+c;
 				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Readin '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
 				checkMessage(a);
-				
-			until false;
-		except
-			on e:Exception do begin
-			if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
-			else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Disconnected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
-			else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession Close','A Unknown mod given');
+			//until false;
+			until eof(a^.sIn);
 			
 			ClientList.Remove(a);
+			if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
 			FreeMem(a);
+		except
+			on e:Exception do begin
+				if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+				else if upcase(ServerConfig.mode)='CLIENT'  then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Disconnected',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
+				else CQ_i_addLog(CQLOG_FATAL,'JustChatS | aSession Close','A Unknown mod given');
+				
+				ClientList.Remove(a);
+				if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
+				FreeMem(a);
 			end;
 		end;
 	//end
