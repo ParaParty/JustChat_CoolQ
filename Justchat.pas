@@ -98,20 +98,22 @@ begin
 				end;
 				
 				if back='' then begin
-					eventType:=S.FindPath('event').asInt64;
+					if S.FindPath('sender')<>nil then begin
+						eventType:=S.FindPath('event').asInt64;
 
-					if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-					if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-					if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+						if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+						if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+						if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
 
-					sender:=Base64_Decryption(S.FindPath('sender').asString);
-					if pos('%SENDER%',back)>0
-						then Message_Replace(back,'%SENDER%',sender)
-						else Message_Replace(back,'%PLAYER%',sender);
+						sender:=Base64_Decryption(S.FindPath('sender').asString);
+						if pos('%SENDER%',back)>0
+							then Message_Replace(back,'%SENDER%',sender)
+							else Message_Replace(back,'%PLAYER%',sender);
+					end;
 				end;
 
 				//P.Destroy;
-				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+				if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
 			if (msgtype=TMsgType_HEARTBEATS) then begin
