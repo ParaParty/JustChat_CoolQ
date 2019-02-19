@@ -230,8 +230,7 @@ Begin
 	end	else
 	if upcase(ServerConfig.mode)='CLIENT' then begin
 		while true do begin
-			repeat
-			until ClientList.Count=0;
+			while ClientList.Count>0 do delay(5000);
 
 			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server (Client Mode)','Connecting to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 			new(a);
@@ -249,7 +248,7 @@ Begin
 			begin
 				FreeMem(a);
 				CQ_i_addLog(CQLOG_ERROR,'JustChatS | Server (Client Mode) | ERR:'+NumToChar(SocketError),'Fail to connect to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
-				delay(30*1000);
+				delay(5000);
 			end;
 
 		end;
