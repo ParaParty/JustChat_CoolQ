@@ -26,7 +26,7 @@ Var
                     end;
 
     MessageFormat: record
-                        Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
+                        Msg_INFO_All,Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
                         Msg_Server_Playerlist,
                         Event_online,Event_offline :ansistring;
                     end;
@@ -120,6 +120,7 @@ Var
     T:Text;
 Begin
     Full:=TJsonObject.Create;
+	Full.add('Msg_INFO_All',MessageFormat.Msg_INFO_All);
 	Full.add('Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
 	Full.add('Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
 	Full.add('Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
@@ -317,6 +318,7 @@ Begin
     if ServerConfig.port>65535 then ServerConfig.port:=54321;
     if ServerConfig.port<1 then ServerConfig.port:=54321;
 
+    MessageFormat.Msg_INFO_All:='[%SERVER%] %CONTENT%';
     MessageFormat.Msg_INFO_Join:='[%SERVER%] %SENDER% joined the game.';
     MessageFormat.Msg_INFO_Disconnect:='[%SERVER%] %SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='[%SERVER%] %SENDER% dead.';
@@ -330,6 +332,9 @@ Begin
         B:= Json_OpenFromFile(CQ_i_getAppDirectory+'message.json');
         E:=B.GetEnumerator;
         while E.MoveNext do begin
+            if upcase(E.Current.Key)='MSG_INFO_ALL' then begin
+                MessageFormat.Msg_INFO_All:=B.FindPath(E.Current.Key).AsString;
+            end else
             if upcase(E.Current.Key)='MSG_INFO_JOIN' then begin
                 MessageFormat.Msg_INFO_Join:=B.FindPath(E.Current.Key).AsString;
             end else
@@ -361,6 +366,9 @@ Begin
     begin
         A:= TIniFile.Create(CQ_i_getAppDirectory+'message.ini',true);
 		A.CacheUpdates:= true;
+		
+        MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_All',MessageFormat.Msg_INFO_All);
+        A.WriteString('message','Msg_INFO_All',MessageFormat.Msg_INFO_All);
 		
         MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
         A.WriteString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);

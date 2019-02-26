@@ -127,7 +127,11 @@ begin
 						if S.FindPath('content')<>nil
 							then content:=S.FindPath('content').AsString
 							else content:='';
-						if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+						if content<>'' then begin
+							back:=MessageFormat.Msg_INFO_All;
+							Message_Replace(back,'%CONTENT%',content);
+							CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+						end;
 					end;					
 				end;
 			end
