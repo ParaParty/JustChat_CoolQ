@@ -104,7 +104,7 @@ Begin
     serverNode.add('name',ServerConfig.ConsoleName);
     serverNode.add('pulseInterval',ServerConfig.pulseInterval);
     configNode.add('groupid',Justchat_BindGroup);
-    eventNode.add('Info_All',EventSwitcher.Info_All);
+    eventNode.add('Info_all',EventSwitcher.Info_All);
     eventNode.add('Info_Network',EventSwitcher.Info_Network);
     eventNode.add('Info_PlayerDeath',EventSwitcher.Info_PlayerDeath);
     eventNode.add('playerList',EventSwitcher.playerList);
@@ -278,12 +278,12 @@ Begin
         end;
 
 
-        S:=upcase(A.ReadString('events','Info_All','true'));
+        S:=upcase(A.ReadString('events','Info_all','true'));
         if S='TRUE' then begin
-            A.WriteString('events','Info_All','true');
+            A.WriteString('events','Info_all','true');
         end else
         if S='FALSE' then begin
-            A.WriteString('events','Info_All','false');
+            A.WriteString('events','Info_all','false');
         end;
 
         S:=upcase(A.ReadString('events','Info_network','true'));
@@ -317,9 +317,9 @@ Begin
     if ServerConfig.port>65535 then ServerConfig.port:=54321;
     if ServerConfig.port<1 then ServerConfig.port:=54321;
 
-    MessageFormat.Msg_INFO_Join:='%SENDER% joined the game.';
-    MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
-    MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
+    MessageFormat.Msg_INFO_Join:='[%SERVER%] %SENDER% joined the game.';
+    MessageFormat.Msg_INFO_Disconnect:='[%SERVER%] %SENDER% left the game.';
+    MessageFormat.Msg_INFO_PlayerDead:='[%SERVER%] %SENDER% dead.';
     MessageFormat.Msg_Text_Overview:='[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
     MessageFormat.Msg_Server_Playerlist:='[%SERVER%] There are %NOW%/%MAX% players online.';
     MessageFormat.Event_online:='Server %NAME% is now online.';

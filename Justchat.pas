@@ -109,6 +109,7 @@ begin
 								if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
 								if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
 
+								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
 								sender:=Base64_Decryption(S.FindPath('sender').asString);
 								if pos('%SENDER%',back)>0
 									then Message_Replace(back,'%SENDER%',sender)
