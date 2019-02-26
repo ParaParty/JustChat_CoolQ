@@ -98,7 +98,7 @@ begin
 						((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
 
 							if S.FindPath('content')<>nil
-								then content:=S.FindPath('content').AsString
+								then content:=Base64_Decryption(S.FindPath('content').AsString)
 								else content:='';
 
 							if content='' then begin
@@ -119,6 +119,7 @@ begin
 							else
 							begin
 								back:=MessageFormat.Msg_INFO_General;
+								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
 								Message_Replace(back,'%CONTENT%',content);
 							end;
 
@@ -130,10 +131,11 @@ begin
 					begin
 						if EventSwitcher.Info_Other then begin
 							if S.FindPath('content')<>nil
-								then content:=S.FindPath('content').AsString
+								then content:=Base64_Decryption(S.FindPath('content').AsString)
 								else content:='';
 							if content<>'' then begin
 								back:=MessageFormat.Msg_INFO_General;
+								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
 								Message_Replace(back,'%CONTENT%',content);
 								CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 							end;
