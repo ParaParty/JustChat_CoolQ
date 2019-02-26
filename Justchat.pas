@@ -53,7 +53,6 @@ End;
 procedure onMessageReceived(aMSGPack:PMessagePack);
 Var
     S:TJsonData;
-	P:TBaseJSONEnumerator;
     version:int64;
     msgtype:int64;
 
@@ -83,6 +82,7 @@ begin
 
                 //CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
 				back:=MessageFormat.Msg_Text_Overview;
+				Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
 				Message_Replace(back,'%WORLD_DISPLAY%',CQ_CharEncode(world_display,false));
 				Message_Replace(back,'%SENDER%',CQ_CharEncode(sender,false));
 				Message_Replace(back,'%CONTENT%',CQ_CharEncode(content,false));
@@ -91,31 +91,44 @@ begin
             end
             else
 			if msgtype=TMsgType_Info then begin
-				P:=S.GetEnumerator;
-				back:='';
-				while P.MoveNext do begin
-					if upcase(P.Current.Key)='CONTENT' then begin
-						back:=Base64_Decryption(S.FindPath(P.Current.Key).AsString);
+
+				if S.FindPath('event')<>nil then begin
+					eventType:=S.FindPath('event').asInt64;
+					if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
+					   ((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
+
+						if S.FindPath('content')<>nil
+							then content:=S.FindPath('content').AsString
+							else content:='';
+
+						if back='' then begin
+							if S.FindPath('sender')<>nil then begin
+								eventType:=S.FindPath('event').asInt64;
+
+								if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+								if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+								if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+
+								sender:=Base64_Decryption(S.FindPath('sender').asString);
+								if pos('%SENDER%',back)>0
+									then Message_Replace(back,'%SENDER%',sender)
+									else Message_Replace(back,'%PLAYER%',sender);
+							end;
+						end;
+
+						if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+
 					end;
+				end
+				else
+				begin
+					if EventSwitcher.Info_All then begin
+						if S.FindPath('content')<>nil
+							then content:=S.FindPath('content').AsString
+							else content:='';
+						if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+					end;					
 				end;
-				
-				if back='' then begin
-					if S.FindPath('sender')<>nil then begin
-						eventType:=S.FindPath('event').asInt64;
-
-						if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-						if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-						if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
-
-						sender:=Base64_Decryption(S.FindPath('sender').asString);
-						if pos('%SENDER%',back)>0
-							then Message_Replace(back,'%SENDER%',sender)
-							else Message_Replace(back,'%PLAYER%',sender);
-					end;
-				end;
-
-				//P.Destroy;
-				if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
 			if (msgtype=TMsgType_HEARTBEATS) then begin
@@ -138,17 +151,19 @@ begin
 			end
 			else
 			if (msgtype=TMSGTYPE_PLAYERLIST) and (S.FindPath('subtype').asInt64=TMSGTYPE_PLAYERLIST_Response) then begin
-				back:=MessageFormat.Msg_Server_Playerlist;
-				Message_Replace(back,'%SERVER%',aMSGPack^.client^.info.name);
-				Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
-				Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
-				j:=S.FindPath('playerlist').count;
-				if j<>0 then back:=back+CRLF;
-				for i:=0 to j-1 do begin
-					back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
-					if i<>j-1 then back:=back+', ';
+				if EventSwitcher.playerList then  begin
+					back:=MessageFormat.Msg_Server_Playerlist;
+					Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+					Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
+					Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
+					j:=S.FindPath('playerlist').count;
+					if j<>0 then back:=back+CRLF;
+					for i:=0 to j-1 do begin
+						back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
+						if i<>j-1 then back:=back+', ';
+					end;
+					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 				end;
-				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 			end
 			else
             begin

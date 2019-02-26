@@ -19,6 +19,12 @@ Var
 
                         pulseInterval : int64;
                 end;
+
+    EventSwitcher : record
+                        Info_All,Info_Network,Info_PlayerDeath,
+                        PlayerList : boolean;
+                    end;
+
     MessageFormat: record
                         Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
                         Msg_Server_Playerlist,
@@ -81,14 +87,16 @@ End;
 
 procedure SaveConfigToJson();
 Var
-    Full,serverNode,configNode:TJsonObject;
+    Full,serverNode,configNode,eventNode:TJsonObject;
     T:Text;
 Begin
     Full:=TJsonObject.Create;
     serverNode:=TJsonObject.Create;
     configNode:=TJsonObject.Create;
+    eventNode:=TJsonObject.Create;
 	Full.add('server',serverNode);
     Full.add('config',configNode);
+    Full.add('events',eventNode);
     serverNode.add('mode',ServerConfig.mode);
     serverNode.add('ip',NetAddrToStr(ServerConfig.ip));
     serverNode.add('port',ServerConfig.port);
@@ -96,6 +104,10 @@ Begin
     serverNode.add('name',ServerConfig.ConsoleName);
     serverNode.add('pulseInterval',ServerConfig.pulseInterval);
     configNode.add('groupid',Justchat_BindGroup);
+    eventNode.add('Info_All',EventSwitcher.Info_All);
+    eventNode.add('Info_Network',EventSwitcher.Info_Network);
+    eventNode.add('Info_PlayerDeath',EventSwitcher.Info_PlayerDeath);
+    eventNode.add('playerList',EventSwitcher.playerList);
     assign(T,CQ_i_getAppDirectory+'config.json');rewrite(T);
     writeln(T,full.FormatJson);
 	close(T);
@@ -126,6 +138,8 @@ Var
 	A:TIniFile;
     B,BB:TJsonData;
 	E,EE:TBaseJSONEnumerator;
+
+    S:ansistring;
 Begin
 
             
@@ -136,7 +150,12 @@ Begin
 		ServerConfig.ID:=Guid_Gen;
 		ServerConfig.ConsoleName:='';
 		ServerConfig.pulseInterval:=20;
-		
+		EventSwitcher.Info_All:=true;
+		EventSwitcher.Info_Network:=true;
+		EventSwitcher.Info_playerDeath:=true;
+		EventSwitcher.playerList:=true;
+
+
         B:= Json_OpenFromFile(CQ_i_getAppDirectory+'config.json');
 		E:=B.GetEnumerator;
 		while E.MoveNext do begin
@@ -176,7 +195,27 @@ Begin
 				end;
 				//EE.Destroy;
 				//BB.Destroy;
-            end;
+            end else
+            if upcase(E.Current.Key)='EVENTS' then begin
+				BB:=B.FindPath(E.Current.Key);
+				EE:=BB.GetEnumerator;
+				while EE.MoveNext do begin
+					if upcase(EE.Current.Key)='INFO_ALL' then begin
+						EventSwitcher.Info_All:=BB.FindPath(EE.Current.Key).AsBoolean;
+					end else
+					if upcase(EE.Current.Key)='INFO_NETWORK' then begin
+						EventSwitcher.Info_Network:=BB.FindPath(EE.Current.Key).AsBoolean;
+					end else
+					if upcase(EE.Current.Key)='INFO_PLAYERDEATH' then begin
+						EventSwitcher.Info_PlayerDeath:=BB.FindPath(EE.Current.Key).AsBoolean;
+					end else
+					if upcase(EE.Current.Key)='PLAYERLIST' then begin
+						EventSwitcher.PlayerList:=BB.FindPath(EE.Current.Key).AsBoolean;
+					end;
+				end;
+				//EE.Destroy;
+				//BB.Destroy;
+            end;;
 			
 		end;
 
@@ -237,6 +276,40 @@ Begin
         if Justchat_BindGroup=0 then begin
             A.WriteInt64('config','groupid',0);
         end;
+
+
+        S:=upcase(A.ReadString('events','Info_All','true'));
+        if S='TRUE' then begin
+            A.WriteString('events','Info_All','true');
+        end else
+        if S='FALSE' then begin
+            A.WriteString('events','Info_All','false');
+        end;
+
+        S:=upcase(A.ReadString('events','Info_network','true'));
+        if S='TRUE' then begin
+            A.WriteString('events','Info_network','true');
+        end else
+        if S='FALSE' then begin
+            A.WriteString('events','Info_network','false');
+        end;
+
+        S:=upcase(A.ReadString('events','Info_playerDeath','true'));
+        if S='TRUE' then begin
+            A.WriteString('events','Info_playerDeath','true');
+        end else
+        if S='FALSE' then begin
+            A.WriteString('events','Info_playerDeath','false');
+        end;
+
+        S:=upcase(A.ReadString('events','playerList','true'));
+        if S='TRUE' then begin
+            A.WriteString('events','playerList','true');
+        end else
+        if S='FALSE' then begin
+            A.WriteString('events','playerList','false');
+        end;
+
 		A.UpdateFile;
         A.Destroy;
     end;
@@ -247,7 +320,7 @@ Begin
     MessageFormat.Msg_INFO_Join:='%SENDER% joined the game.';
     MessageFormat.Msg_INFO_Disconnect:='%SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='%SENDER% dead.';
-    MessageFormat.Msg_Text_Overview:='[*][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
+    MessageFormat.Msg_Text_Overview:='[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%';
     MessageFormat.Msg_Server_Playerlist:='[%SERVER%] There are %NOW%/%MAX% players online.';
     MessageFormat.Event_online:='Server %NAME% is now online.';
     MessageFormat.Event_offline:='Server %NAME% is now offline.';

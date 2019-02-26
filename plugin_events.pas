@@ -155,7 +155,7 @@ Begin
 		if command[1]+command[2]+command[3]=ansistring('！') then command:='!'+copy(command,4,length(command));
 		if (command[1]='/') or (command[1]='!') then begin
 			delete(command,1,1);
-			if (command='LS') or (command='LIST')  then begin
+			if (EventSwitcher.playerList) and ((command='LS') or (command='LIST')) then begin
 				MSG_PlayerList();
 			end;
 		end;
