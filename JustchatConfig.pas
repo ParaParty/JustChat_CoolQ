@@ -21,12 +21,12 @@ Var
                 end;
 
     EventSwitcher : record
-                        Info_All,Info_Network,Info_PlayerDeath,
+                        Info_All,Info_Network,Info_PlayerDeath,Info_Other,
                         PlayerList : boolean;
                     end;
 
     MessageFormat: record
-                        Msg_INFO_All,Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
+                        Msg_INFO_General,Msg_INFO_Join,Msg_INFO_Disconnect,Msg_INFO_PlayerDead,Msg_Text_Overview,
                         Msg_Server_Playerlist,
                         Event_online,Event_offline :ansistring;
                     end;
@@ -107,6 +107,7 @@ Begin
     eventNode.add('Info_all',EventSwitcher.Info_All);
     eventNode.add('Info_Network',EventSwitcher.Info_Network);
     eventNode.add('Info_PlayerDeath',EventSwitcher.Info_PlayerDeath);
+    eventNode.add('Info_other',EventSwitcher.Info_Other);
     eventNode.add('playerList',EventSwitcher.playerList);
     assign(T,CQ_i_getAppDirectory+'config.json');rewrite(T);
     writeln(T,full.FormatJson);
@@ -120,7 +121,7 @@ Var
     T:Text;
 Begin
     Full:=TJsonObject.Create;
-	Full.add('Msg_INFO_All',MessageFormat.Msg_INFO_All);
+	Full.add('Msg_INFO_General',MessageFormat.Msg_INFO_General);
 	Full.add('Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
 	Full.add('Msg_INFO_Disconnect',MessageFormat.Msg_INFO_Disconnect);
 	Full.add('Msg_INFO_PlayerDead',MessageFormat.Msg_INFO_PlayerDead);
@@ -154,6 +155,7 @@ Begin
 		EventSwitcher.Info_All:=true;
 		EventSwitcher.Info_Network:=true;
 		EventSwitcher.Info_playerDeath:=true;
+		EventSwitcher.Info_Other:=true;
 		EventSwitcher.playerList:=true;
 
 
@@ -209,6 +211,9 @@ Begin
 					end else
 					if upcase(EE.Current.Key)='INFO_PLAYERDEATH' then begin
 						EventSwitcher.Info_PlayerDeath:=BB.FindPath(EE.Current.Key).AsBoolean;
+					end else
+					if upcase(EE.Current.Key)='INFO_OTHER' then begin
+						EventSwitcher.Info_other:=BB.FindPath(EE.Current.Key).AsBoolean;
 					end else
 					if upcase(EE.Current.Key)='PLAYERLIST' then begin
 						EventSwitcher.PlayerList:=BB.FindPath(EE.Current.Key).AsBoolean;
@@ -282,33 +287,51 @@ Begin
         S:=upcase(A.ReadString('events','Info_all','true'));
         if S='TRUE' then begin
             A.WriteString('events','Info_all','true');
+            EventSwitcher.Info_All:=true;
         end else
         if S='FALSE' then begin
             A.WriteString('events','Info_all','false');
+            EventSwitcher.Info_All:=false;
         end;
 
         S:=upcase(A.ReadString('events','Info_network','true'));
         if S='TRUE' then begin
             A.WriteString('events','Info_network','true');
+            EventSwitcher.Info_network:=true;
         end else
         if S='FALSE' then begin
             A.WriteString('events','Info_network','false');
+            EventSwitcher.Info_network:=false;
         end;
 
         S:=upcase(A.ReadString('events','Info_playerDeath','true'));
         if S='TRUE' then begin
             A.WriteString('events','Info_playerDeath','true');
+            EventSwitcher.Info_playerDeath:=true;
         end else
         if S='FALSE' then begin
             A.WriteString('events','Info_playerDeath','false');
+            EventSwitcher.Info_playerDeath:=false;
+        end;
+
+        S:=upcase(A.ReadString('events','Info_other','true'));
+        if S='TRUE' then begin
+            A.WriteString('events','Info_other','true');
+            EventSwitcher.Info_other:=true;
+        end else
+        if S='FALSE' then begin
+            A.WriteString('events','Info_other','false');
+            EventSwitcher.Info_other:=false;
         end;
 
         S:=upcase(A.ReadString('events','playerList','true'));
         if S='TRUE' then begin
             A.WriteString('events','playerList','true');
+            EventSwitcher.playerList:=true;
         end else
         if S='FALSE' then begin
             A.WriteString('events','playerList','false');
+            EventSwitcher.playerList:=false;
         end;
 
 		A.UpdateFile;
@@ -318,7 +341,7 @@ Begin
     if ServerConfig.port>65535 then ServerConfig.port:=54321;
     if ServerConfig.port<1 then ServerConfig.port:=54321;
 
-    MessageFormat.Msg_INFO_All:='[%SERVER%] %CONTENT%';
+    MessageFormat.Msg_INFO_General:='[%SERVER%] %CONTENT%';
     MessageFormat.Msg_INFO_Join:='[%SERVER%] %SENDER% joined the game.';
     MessageFormat.Msg_INFO_Disconnect:='[%SERVER%] %SENDER% left the game.';
     MessageFormat.Msg_INFO_PlayerDead:='[%SERVER%] %SENDER% dead.';
@@ -332,8 +355,8 @@ Begin
         B:= Json_OpenFromFile(CQ_i_getAppDirectory+'message.json');
         E:=B.GetEnumerator;
         while E.MoveNext do begin
-            if upcase(E.Current.Key)='MSG_INFO_ALL' then begin
-                MessageFormat.Msg_INFO_All:=B.FindPath(E.Current.Key).AsString;
+            if upcase(E.Current.Key)='MSG_INFO_GENERAL' then begin
+                MessageFormat.Msg_INFO_General:=B.FindPath(E.Current.Key).AsString;
             end else
             if upcase(E.Current.Key)='MSG_INFO_JOIN' then begin
                 MessageFormat.Msg_INFO_Join:=B.FindPath(E.Current.Key).AsString;
@@ -367,8 +390,8 @@ Begin
         A:= TIniFile.Create(CQ_i_getAppDirectory+'message.ini',true);
 		A.CacheUpdates:= true;
 		
-        MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_All',MessageFormat.Msg_INFO_All);
-        A.WriteString('message','Msg_INFO_All',MessageFormat.Msg_INFO_All);
+        MessageFormat.Msg_INFO_General:=A.ReadString('message','Msg_INFO_General',MessageFormat.Msg_INFO_General);
+        A.WriteString('message','Msg_INFO_General',MessageFormat.Msg_INFO_General);
 		
         MessageFormat.Msg_INFO_Join:=A.ReadString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
         A.WriteString('message','Msg_INFO_Join',MessageFormat.Msg_INFO_Join);
@@ -382,14 +405,14 @@ Begin
         MessageFormat.Msg_Text_Overview:=A.ReadString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
         A.WriteString('message','Msg_Text_Overview',MessageFormat.Msg_Text_Overview);
         
-        MessageFormat.Msg_Text_Overview:=A.ReadString('message','Event_online',MessageFormat.Msg_Text_Overview);
+        MessageFormat.Event_online:=A.ReadString('message','Event_online',MessageFormat.Event_online);
         A.WriteString('message','Event_online',MessageFormat.Event_online);
 
-        MessageFormat.Event_offline:=A.ReadString('message','Event_offline',MessageFormat.Msg_Text_Overview);
-        A.WriteString('message','Event_offline',MessageFormat.Msg_Text_Overview);
+        MessageFormat.Event_offline:=A.ReadString('message','Event_offline',MessageFormat.Event_offline);
+        A.WriteString('message','Event_offline',MessageFormat.Event_offline);
 
-        MessageFormat.Msg_Server_Playerlist:=A.ReadString('message','Msg_Server_Playerlist',MessageFormat.Msg_Text_Overview);
-        A.WriteString('message','Msg_Server_Playerlist',MessageFormat.Msg_Text_Overview);
+        MessageFormat.Msg_Server_Playerlist:=A.ReadString('message','Msg_Server_Playerlist',MessageFormat.Msg_Server_Playerlist);
+        A.WriteString('message','Msg_Server_Playerlist',MessageFormat.Msg_Server_Playerlist);
 
         A.Destroy;
     end;

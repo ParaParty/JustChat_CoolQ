@@ -91,48 +91,54 @@ begin
             end
             else
 			if msgtype=TMsgType_Info then begin
+				if EventSwitcher.Info_All then begin
+					if S.FindPath('event')<>nil then begin
+						eventType:=S.FindPath('event').asInt64;
+						if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
+						((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
 
-				if S.FindPath('event')<>nil then begin
-					eventType:=S.FindPath('event').asInt64;
-					if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
-					   ((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
+							if S.FindPath('content')<>nil
+								then content:=S.FindPath('content').AsString
+								else content:='';
 
-						if S.FindPath('content')<>nil
-							then content:=S.FindPath('content').AsString
-							else content:='';
+							if content='' then begin
+								if S.FindPath('sender')<>nil then begin
+									eventType:=S.FindPath('event').asInt64;
 
-						if back='' then begin
-							if S.FindPath('sender')<>nil then begin
-								eventType:=S.FindPath('event').asInt64;
+									if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+									if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+									if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
 
-								if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-								if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-								if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
-
-								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-								sender:=Base64_Decryption(S.FindPath('sender').asString);
-								if pos('%SENDER%',back)>0
-									then Message_Replace(back,'%SENDER%',sender)
-									else Message_Replace(back,'%PLAYER%',sender);
+									Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+									sender:=Base64_Decryption(S.FindPath('sender').asString);
+									if pos('%SENDER%',back)>0
+										then Message_Replace(back,'%SENDER%',sender)
+										else Message_Replace(back,'%PLAYER%',sender);
+								end;
+							end
+							else
+							begin
+								back:=MessageFormat.Msg_INFO_General;
+								Message_Replace(back,'%CONTENT%',content);
 							end;
+
+							if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+
 						end;
-
-						if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-
+					end
+					else
+					begin
+						if EventSwitcher.Info_Other then begin
+							if S.FindPath('content')<>nil
+								then content:=S.FindPath('content').AsString
+								else content:='';
+							if content<>'' then begin
+								back:=MessageFormat.Msg_INFO_General;
+								Message_Replace(back,'%CONTENT%',content);
+								CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+							end;
+						end;					
 					end;
-				end
-				else
-				begin
-					if EventSwitcher.Info_All then begin
-						if S.FindPath('content')<>nil
-							then content:=S.FindPath('content').AsString
-							else content:='';
-						if content<>'' then begin
-							back:=MessageFormat.Msg_INFO_All;
-							Message_Replace(back,'%CONTENT%',content);
-							CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-						end;
-					end;					
 				end;
 			end
 			else
