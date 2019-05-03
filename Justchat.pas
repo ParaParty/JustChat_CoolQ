@@ -243,6 +243,7 @@ Var
 	t:longint;
 	a:longint;
 Begin
+	if ID<128 then exit(char(ID));
 	result:='';
 	t:=ID;
 	while t>0 do begin

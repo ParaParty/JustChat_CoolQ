@@ -4,11 +4,24 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "编译Justchat服务端",
+            "label": "Release",
             "type": "shell",
             "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
             "args": [
                 "com.superexercisebook.justchat.pas"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Debug",
+            "type": "shell",
+            "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
+            "args": [
+                "com.superexercisebook.justchat.pas",
+                "-g"
             ],
             "group": {
                 "kind": "build",
