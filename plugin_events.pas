@@ -153,7 +153,7 @@ Begin
 	if (s.count>=1) then begin
 		command := upcase(s[0]);
 		if (length(command)>=3) and (command[1]+command[2]+command[3]=ansistring('！')) then command:='!'+copy(command,4,length(command));
-		if (command[1]='/') or (command[1]='!') then begin
+		if (length(command)>0) and ((command[1]='/') or (command[1]='!')) then begin
 			delete(command,1,1);
 			if (EventSwitcher.playerList) and ((command='LS') or (command='LIST')) then begin
 				MSG_PlayerList();
