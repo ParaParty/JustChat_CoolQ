@@ -17,6 +17,8 @@ Type
 				info	: record
 							name:ansistring;
 						end;
+
+				status	: longint;
 			end;
 	PClient = ^Client;
 	
@@ -40,9 +42,8 @@ Var
     JustchatServer_PID:LongWord;
 
 
-procedure stertServer();
 procedure closeServer();
-procedure listening();stdcall;
+procedure StartService();stdcall;
 procedure Broadcast(MSG:ansistring);overload;
 procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
 
@@ -90,7 +91,7 @@ Begin
 		SAddr.sin_addr.s_addr:=ServerConfig.ip.s_addr;
 	end else
 	begin
-		CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','A Unknown mod given');
+		CQ_i_addLog(CQLOG_FATAL,'JustChatS | StartServer','A Unknown mode given.');
 	end;
 End;
 
@@ -184,7 +185,7 @@ Begin
 				//CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Readin '+NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port),Base64_Encryption(a^.buff));
 				checkMessage(a);
 			//until false;
-			until eof(a^.sIn);
+			until eof(a^.sIn) or (a^.status=-1);
 			
 			ClientList.Remove(a);
 			if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
@@ -214,18 +215,29 @@ End;
 procedure listening();stdcall;
 Var
 	a : PClient;
+	i : longint;
 Begin
 	if upcase(ServerConfig.mode)='SERVER' then begin
 		CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Server started on '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 		while true do begin
 			new(a);
-			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Waiting for Connect from Client, run now sock_cli in an other tty');
-			Accept(S,a^.FromName,a^.Sin,a^.Sout);
-			Reset(a^.Sin);
-			ReWrite(a^.Sout);
-			a^.buff:='';
-			createthread(nil,0,@aSession,a,0,a^.PID);		
-			ClientList.add(a);
+			CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Waiting for Connect from Client, run new sock_cli in another tty.');
+			if Accept(S,a^.FromName,a^.Sin,a^.Sout) then begin
+				Reset(a^.Sin);
+				ReWrite(a^.Sout);
+				a^.buff:='';
+				a^.status:=0;
+				createthread(nil,0,@aSession,a,0,a^.PID);		
+				ClientList.add(a);
+			end
+			else
+			begin
+				CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Server','Fail to accept a new sock_cli.');
+				for i:=0 to ClientList.Count-1 do begin
+					a^.status:=-1;
+				end;
+				exit();
+			end;
 		end;
 	end	else
 	if upcase(ServerConfig.mode)='CLIENT' then begin
@@ -240,6 +252,7 @@ Begin
 				Reset(a^.Sin);
 				ReWrite(a^.Sout);
 				a^.buff:='';
+				a^.status:=0;
 				if PMSG_Register<>nil then Broadcast(TMSG_Register(PMSG_Register)(),a);
 				createthread(nil,0,@aSession,a,0,a^.PID);		
 				ClientList.add(a);
@@ -249,6 +262,7 @@ Begin
 				FreeMem(a);
 				CQ_i_addLog(CQLOG_ERROR,'JustChatS | Server (Client Mode) | ERR:'+NumToChar(SocketError),'Fail to connect to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 				delay(5000);
+				exit();
 			end;
 
 		end;
@@ -261,6 +275,17 @@ Begin
 
 
 end;
+
+
+procedure StartService();stdcall;
+Begin
+	while true do begin
+		StertServer();
+		listening();
+		CloseServer();
+	end;
+End;
+
 
 procedure Broadcast(MSG:ansistring);overload;
 Var

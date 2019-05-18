@@ -77,8 +77,8 @@ Begin
 	PonMessageReceived:=@onMessageReceived;
 	PMSG_Register:=@MSG_Register;
 	PonClientDisconnect:=@onClientDisconnect;
-	StertServer();
-	createthread(nil,0,@listening,nil,0,JustchatServer_PID);
+	
+	createthread(nil,0,@StartService,nil,0,JustchatServer_PID);
 
 	if (upcase(ServerConfig.mode)='CLIENT') and (ServerConfig.pulseInterval>0) then
 		SetTimer(0,2, ServerConfig.pulseInterval*1000, @MSG_Pulse);
