@@ -6,6 +6,7 @@ uses
     fpjson,jsonparser,RegExpr,
     sockets,
     CoolQSDK,
+	windows,
     JustchatConfig,JustchatServer;
 
 procedure onMessageReceived(aMSGPack:PMessagePack);
@@ -62,144 +63,151 @@ Var
 	back:ansistring;
 	i,j:longint;
 begin
-    try
-		if length(aMSGPack^.MSG)<=2 then begin
-			CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
-			exit();
-		end;
-        S:=GetJSON(aMSGPack^.MSG);
-        version:=S.FindPath('version').asInt64;
-        if version=ServerPackVersion then begin
-            msgtype:=S.FindPath('type').asInt64;
+	try
+	
+		try
+			if length(aMSGPack^.MSG)<=2 then begin
+				CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
+				exit();
+			end;
+			S:=GetJSON(aMSGPack^.MSG);
+			version:=S.FindPath('version').asInt64;
+			if version=ServerPackVersion then begin
+				msgtype:=S.FindPath('type').asInt64;
 
-            if msgtype=TMsgType_Message then begin
-                sender:=Base64_Decryption(S.FindPath('sender').asString);
-                world_display:=Base64_Decryption(S.FindPath('world_display').asString);
-                content:=TextMessageContentUnpack(S.FindPath('content'));
-				
-                //if pos('Text{',content)=1 then delete(content,1,5);
-                //if content[length(content)]='}' then delete(content,length(content),1);
+				if msgtype=TMsgType_Message then begin
+					sender:=Base64_Decryption(S.FindPath('sender').asString);
+					world_display:=Base64_Decryption(S.FindPath('world_display').asString);
+					content:=TextMessageContentUnpack(S.FindPath('content'));
+					
+					//if pos('Text{',content)=1 then delete(content,1,5);
+					//if content[length(content)]='}' then delete(content,length(content),1);
 
-                //CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
-				back:=MessageFormat.Msg_Text_Overview;
-				Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-				Message_Replace(back,'%WORLD_DISPLAY%',CQ_CharEncode(world_display,false));
-				Message_Replace(back,'%SENDER%',CQ_CharEncode(sender,false));
-				Message_Replace(back,'%CONTENT%',CQ_CharEncode(content,false));
-                CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+					//CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
+					back:=MessageFormat.Msg_Text_Overview;
+					Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+					Message_Replace(back,'%WORLD_DISPLAY%',CQ_CharEncode(world_display,false));
+					Message_Replace(back,'%SENDER%',CQ_CharEncode(sender,false));
+					Message_Replace(back,'%CONTENT%',CQ_CharEncode(content,false));
+					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
 
-            end
-            else
-			if msgtype=TMsgType_Info then begin
-				if EventSwitcher.Info_All then begin
-					if S.FindPath('event')<>nil then begin
-						eventType:=S.FindPath('event').asInt64;
-						if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
-						((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
+				end
+				else
+				if msgtype=TMsgType_Info then begin
+					if EventSwitcher.Info_All then begin
+						if S.FindPath('event')<>nil then begin
+							eventType:=S.FindPath('event').asInt64;
+							if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
+							((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
 
-							if S.FindPath('content')<>nil
-								then content:=Base64_Decryption(S.FindPath('content').AsString)
-								else content:='';
+								if S.FindPath('content')<>nil
+									then content:=Base64_Decryption(S.FindPath('content').AsString)
+									else content:='';
 
-							if content='' then begin
-								if S.FindPath('sender')<>nil then begin
-									eventType:=S.FindPath('event').asInt64;
+								if content='' then begin
+									if S.FindPath('sender')<>nil then begin
+										eventType:=S.FindPath('event').asInt64;
 
-									if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-									if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-									if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
+										if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
+										if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
+										if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
 
+										Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+										sender:=Base64_Decryption(S.FindPath('sender').asString);
+										if pos('%SENDER%',back)>0
+											then Message_Replace(back,'%SENDER%',sender)
+											else Message_Replace(back,'%PLAYER%',sender);
+									end;
+								end
+								else
+								begin
+									back:=MessageFormat.Msg_INFO_General;
 									Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-									sender:=Base64_Decryption(S.FindPath('sender').asString);
-									if pos('%SENDER%',back)>0
-										then Message_Replace(back,'%SENDER%',sender)
-										else Message_Replace(back,'%PLAYER%',sender);
+									Message_Replace(back,'%CONTENT%',content);
 								end;
-							end
-							else
-							begin
-								back:=MessageFormat.Msg_INFO_General;
-								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-								Message_Replace(back,'%CONTENT%',content);
+
+								if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+
 							end;
-
-							if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-
+						end
+						else
+						begin
+							if EventSwitcher.Info_Other then begin
+								if S.FindPath('content')<>nil
+									then content:=Base64_Decryption(S.FindPath('content').AsString)
+									else content:='';
+								if content<>'' then begin
+									back:=MessageFormat.Msg_INFO_General;
+									Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+									Message_Replace(back,'%CONTENT%',content);
+									CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+								end;
+							end;					
 						end;
+					end;
+				end
+				else
+				if (msgtype=TMsgType_HEARTBEATS) then begin
+					if upcase(ServerConfig.mode)='SERVER' then begin
+						Broadcast(MSG_Pulse_Packer,aMSGPack.Client);
+						CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Sent a pulse echo.');
 					end
 					else
 					begin
-						if EventSwitcher.Info_Other then begin
-							if S.FindPath('content')<>nil
-								then content:=Base64_Decryption(S.FindPath('content').AsString)
-								else content:='';
-							if content<>'' then begin
-								back:=MessageFormat.Msg_INFO_General;
-								Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-								Message_Replace(back,'%CONTENT%',content);
-								CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-							end;
-						end;					
+						CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a pulse echo.');
 					end;
-				end;
-			end
-			else
-			if (msgtype=TMsgType_HEARTBEATS) then begin
-				if upcase(ServerConfig.mode)='SERVER' then begin
-					Broadcast(MSG_Pulse_Packer,aMSGPack.Client);
-					CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Sent a pulse echo.');
+				end
+				else
+				if (msgtype=TMSGTYPE_REGISTRATION) then begin
+					CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a registration message.');
+					aMSGPack^.client^.info.name:=Base64_Decryption(S.FindPath('name').asString);
+					back:=MessageFormat.Event_online;
+					Message_Replace(back,'%NAME%',aMSGPack^.client^.info.name);
+					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+				end
+				else
+				if (msgtype=TMSGTYPE_PLAYERLIST) and (S.FindPath('subtype').asInt64=TMSGTYPE_PLAYERLIST_Response) then begin
+					if EventSwitcher.playerList then  begin
+						back:=MessageFormat.Msg_Server_Playerlist;
+						Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
+						Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
+						Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
+						j:=S.FindPath('playerlist').count;
+						if j<>0 then back:=back+CRLF;
+						for i:=0 to j-1 do begin
+							back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
+							if i<>j-1 then back:=back+', ';
+						end;
+						CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+					end;
 				end
 				else
 				begin
-					CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a pulse echo.');
+					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message with an unrecognized type.');
 				end;
 			end
 			else
-			if (msgtype=TMSGTYPE_REGISTRATION) then begin
-				CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a registration message.');
-				aMSGPack^.client^.info.name:=Base64_Decryption(S.FindPath('name').asString);
-				back:=MessageFormat.Event_online;
-				Message_Replace(back,'%NAME%',aMSGPack^.client^.info.name);
-				CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-			end
-			else
-			if (msgtype=TMSGTYPE_PLAYERLIST) and (S.FindPath('subtype').asInt64=TMSGTYPE_PLAYERLIST_Response) then begin
-				if EventSwitcher.playerList then  begin
-					back:=MessageFormat.Msg_Server_Playerlist;
-					Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-					Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
-					Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
-					j:=S.FindPath('playerlist').count;
-					if j<>0 then back:=back+CRLF;
-					for i:=0 to j-1 do begin
-						back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
-						if i<>j-1 then back:=back+', ';
-					end;
-					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
+			begin
+				if version<ServerPackVersion then begin
+					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a lower-version client.');
+				end
+				else
+				begin
+					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a higher-version client.');
 				end;
-			end
-			else
-            begin
-                CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message with an unrecognized type.');
-            end;
-        end
-        else
-        begin
-            if version<ServerPackVersion then begin
-                CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a lower-version client.');
-            end
-            else
-            begin
-                CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a higher-version client.');
-            end;
-        end;
-        if S<>nil then S.Destroy;
-    except
-        on e:Exception do begin
-            CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
-            if S<>nil then S.Destroy;
-        end;
-    end;
+			end;
+			if S<>nil then S.Destroy;
+		except
+			on e:Exception do begin
+				CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
+				if S<>nil then S.Destroy;
+			end;
+   		end;
+
+	finally
+		ExitThread(0);
+		//TerminateThread(aMSGPack^.PID,0);
+	end;
 end;
 
 Procedure onClientDisconnect(aClient:PClient);

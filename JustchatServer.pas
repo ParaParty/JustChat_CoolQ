@@ -189,7 +189,7 @@ Begin
 			
 			ClientList.Remove(a);
 			if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
-			FreeMem(a);
+			Dispose(a);
 		except
 			on e:Exception do begin
 				if upcase(ServerConfig.mode)='SERVER' then CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | aSession Close',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port))
@@ -198,7 +198,7 @@ Begin
 				
 				ClientList.Remove(a);
 				if PonClientDisconnect<>nil then TonClientDisconnect(PonClientDisconnect)(a);
-				FreeMem(a);
+				Dispose(a);
 			end;
 		end;
 	//end
@@ -206,7 +206,7 @@ Begin
 	//begin
 	//	CQ_i_addLog(CQLOG_INFOSUCCESS,'JustChatS | Close | Invalid Connection',NetAddrToStr(a^.FromName.sin_addr)+':'+NumToChar(a^.FromName.sin_port));
 	//	ClientList.Remove(a);
-	//	FreeMem(a);
+	//	Dispose(a);
 	//end;
 
 
@@ -259,7 +259,7 @@ Begin
 			end
 			else
 			begin
-				FreeMem(a);
+				Dispose(a);
 				CQ_i_addLog(CQLOG_ERROR,'JustChatS | Server (Client Mode) | ERR:'+NumToChar(SocketError),'Fail to connect to '+NetAddrToStr(SAddr.sin_addr)+':'+NumToChar(ntohs(SAddr.sin_port)));
 				delay(5000);
 				exit();
