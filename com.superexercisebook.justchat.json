@@ -2,8 +2,8 @@
     "ret":1,					// 返回码，固定为1
     "apiver":9,					// Api版本，本SDK为9
     "name":"JustChat",		// 应用名称
-    "version":"1.2.2 Alpha",			// 应用版本
-    "version_id":7,				// 应用顺序版本（每次发布时至少+1）
+    "version":"1.2.2",			// 应用版本
+    "version_id":8,				// 应用顺序版本（每次发布时至少+1）
     "author":"Eric",			// 应用作者
     "description":"JustChat with your friend.",
     "event":[					// 事件列表，同一事件类型可重复定义（发布前请删除无用事件）
