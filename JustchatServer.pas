@@ -46,6 +46,7 @@ procedure closeServer();
 procedure StartService();stdcall;
 procedure Broadcast(MSG:ansistring);overload;
 procedure Broadcast(MSG:ansistring;aClient:PClient);overload;
+procedure RestartServer();
 
 implementation
 
@@ -328,6 +329,32 @@ begin
 	NumtoChar(len mod (2<<7)) );}
 	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7));
 	write(aClient^.Sout,p+MSG);
+end;
+
+procedure RestartServer();
+Var
+	aClient:PClient;
+begin
+	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
+	while (ClientList.Count>0) do begin
+		aClient:=ClientList[0];
+		ClientList.Remove(aClient);
+
+		ExitThread(aClient.PID);
+		close(aClient.Sin);
+		close(aClient.Sout);
+		dispose(aClient);;
+	end;
+	//关闭现有连接
+
+	ExitThread(JustchatServer_PID);
+	//关闭当前服务线程
+
+	CloseServer();
+	//关闭Socket
+
+	createthread(nil,0,@StartService,nil,0,JustchatServer_PID);
+	//重启服务
 end;
 
 initialization

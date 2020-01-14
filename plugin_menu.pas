@@ -1,7 +1,10 @@
 unit plugin_menu;
 
 interface
-uses CoolQSDK,iconv,windows,sysutils,dateutils;
+uses
+	CoolQSDK,iconv,windows,sysutils,dateutils,
+	JustchatConfig,JustchatServer;
+
 Function _menuA():longint;stdcall;
 Function _menuB():longint;stdcall;
 
@@ -15,6 +18,8 @@ Function _menuA():longint;
 stdcall;
 Begin
 	//MessageBox(0,StoP('本插件的AuthCode为 : '+NumToChar(AuthCode)),'样例 _ AuthCode查询',36);
+	Init_Config();
+	RestartServer();
 {$IFDEF FPC}
 	exit(0);
 {$ELSE}

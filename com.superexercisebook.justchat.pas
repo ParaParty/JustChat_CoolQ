@@ -456,10 +456,10 @@ exports
 	_eventSystem_GroupMemberIncrease index 13,
 	_eventFriend_Add index 14,
 	_eventRequest_AddFriend index 15,
-	_eventRequest_AddGroup index 16{,
+	_eventRequest_AddGroup index 16,
 	
 	
-	_menuA index 17,
+	_menuA index 17{,
 	_menuB index 18};
 	
 Begin
