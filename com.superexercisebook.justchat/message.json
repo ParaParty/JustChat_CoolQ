@@ -1,5 +1,0 @@
-{
-"Msg_INFO_Join":"%SENDER% joined the game.",
-"Msg_INFO_Disconnect":"%SENDER% left the game.",
-"Msg_INFO_PlayerDead":"%SENDER% dead."
-}

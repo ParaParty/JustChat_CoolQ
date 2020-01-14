@@ -2,7 +2,7 @@
 	"version": {
 		"config": 2
 	},
-	"connections": {
+	"connection": {
 		"server" : {
 			"enable": false,
 			"port": 38440
@@ -25,36 +25,6 @@
 				"minecraft": [
 					"UUID1"
 				]
-			},
-			"message_format": {}
-		},
-		{
-			"bind": {
-				"qqgroups": [
-					1919810
-				],
-				"minecraft": [
-					"UUID3"
-				]
-			}
-		}
-	],
-	"qqgroups": [
-		{
-			"groupid": 1919810,
-			"config": {
-				"events": {
-					"Info_all": true,
-					"Info_Network": true,
-					"Info_PlayerDeath": true,
-					"Info_other": true,
-					"playerList": true
-				},
-				"message": {
-					"Msg_INFO_Join": "%SENDER% joined the game.",
-					"Msg_INFO_Disconnect": "%SENDER% left the game.",
-					"Msg_INFO_PlayerDead": "%SENDER% dead."
-				}
 			}
 		}
 	],

@@ -7,19 +7,25 @@
 		里的时间库是以当前系统时间的 1970-1-1 00:00:00 作为Unix时间戳起点
 		然而腾讯传递的信息是以 标准时间的1970-1-1 00:00:00 作为时间戳起点
 }
-library
-	testdll;
-	//DLL 编译
 
+{$UNITPATH JustChat}
+
+library
+	JustChat_CoolQ;
+	//DLL 编译
+{$DEFINE __FULL_COMPILE_}
 {$APPTYPE GUI}
 {$I-}
 {$h+}
 
 Uses
-	iconv,CoolQSDK,		//酷QSDK单元
-	windows,math,dateutils,sysutils,Classes,
+	iconv, CoolQSDK,		//酷QSDK单元
+	windows, math, dateutils, sysutils, Classes,
 	
-	JustchatConfig,JustchatServer,Justchat,
+    JustChatConfig_TerminalConfig, 
+    JustChatService_Services,
+
+	JustChatConfig_Readin, JustchatServer, Justchat,
 
 	plugin_events, //插件事件处理单元
 	plugin_menu //插件菜单处理单元
