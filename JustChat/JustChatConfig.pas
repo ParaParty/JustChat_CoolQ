@@ -198,7 +198,7 @@ end;
 function GenerateConfig():longint;
 begin
     if (Is_FileStatus(CQ_i_getAppDirectory+'config.ini')=0) then begin
-        /// TODO
+        /// TODO 配置文件迁移
         /// 存在旧版本配置文件
         /// 把文件搬走然后给你重建配置文件
     end;
@@ -212,7 +212,7 @@ end;
 function UpdateConfig(Config:TJsonData):longint;
 begin
     if ((Config.findPath('version.config')=nil) or (Config.findPath('version.config').AsInt64 < 2)) then begin
-        /// TODO
+        /// TODO 配置文件升级
         /// 存在旧版本配置文件
         /// 把文件搬走然后给你重建配置文件
     end;
@@ -337,7 +337,7 @@ begin
                     T := Config.findPath('services['+NumToChar(i)+']');
                     if T.JsonType <> jtObject then begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An invalid service configuration was detected.'+CRLF+T.FormatJson());
+                        CQ_i_addLog(CQLOG_WARNING,'Configuration','An invalid service configuration was detected.'+CRLF+T.FormatJson());
                         {$ENDIF}
                         continue;
                     end;
@@ -356,7 +356,7 @@ begin
                 for i:= 0 to Config.findPath('qqgroups').Count-1 do begin
                     if T.JsonType <> jtObject then begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An invalid qqgroups configuration was detected.'+CRLF+T.FormatJson());
+                        CQ_i_addLog(CQLOG_WARNING,'Configuration','An invalid qqgroups configuration was detected.'+CRLF+T.FormatJson());
                         {$ENDIF}
                         continue;
                     end;
@@ -366,7 +366,7 @@ begin
                         tmpGroupTerminal.InsertConfig(T.findPath('config'));
                     end else begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An unused qqgroups configuration was detected.'+CRLF+T.FormatJson());
+                        CQ_i_addLog(CQLOG_WARNING,'Configuration','An unused qqgroups configuration was detected.'+CRLF+T.FormatJson());
                         {$ENDIF}
                     end;
                 end;
@@ -381,7 +381,7 @@ begin
             Justchat_Config.Connection.Server.Enable := false;
             Justchat_Config.Connection.Client.Enable := false;
             {$IFDEF CoolQSDK}
-            CQ_i_setFatal(CQLOG_FATAL, 'Configuration', 'Can not load configuration.'+CRLF+AnsiToUTF8(e.message));
+            CQ_i_addLog(CQLOG_FATAL, 'Configuration', 'Can not load configuration.'+CRLF+AnsiToUTF8(e.message));
             {$ENDIF}
         end;
     end;
@@ -390,12 +390,12 @@ end;
 
 procedure Init_ConfigLayout();
 begin
-    /// TODO
+    /// TODO [DEBUG] 配置文件列举
 end;
 
 procedure Final_ConfigFree();
 begin
-    /// TODO
+    /// TODO [DEBUG] 内存回收
 end;
 
 constructor TJustChatConfig_TerminalConfig.Create;
@@ -469,7 +469,7 @@ begin
                 except
                     on e: Exception do begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', e.message());
+                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', e.message);
                         {$ENDIF}
                     end;
                 end;
@@ -499,7 +499,7 @@ begin
                 except
                     on e: Exception do begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', e.message());
+                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', e.message);
                         {$ENDIF}
                     end;
                 end;
