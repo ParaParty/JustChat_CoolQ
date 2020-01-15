@@ -2,19 +2,19 @@ unit JustChatConfig;
 {$MODE OBJFPC}
 
 interface
-/// 引入
 uses
     windows, classes, sysutils,
     fpjson, jsonparser,
-    Tools,
-    gutil, gmap, gset
+    gutil, gmap, gset,
 
+    IdTCPConnection,
+
+    Tools
     {$IFDEF __FULL_COMPILE_}
     ,CoolQSDK
     {$ENDIF}
     ;
 
-/// 类型定义
 type
     {
         JustChat 设置
@@ -125,6 +125,7 @@ end;
 type TJustChatService_MinecraftTerminal = class(TJustChatService_Terminal)
     private
         ID : ansistring;
+        Connection : TIdTCPConnection;
     public
         constructor Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig);
         destructor Destroy;override;
@@ -176,6 +177,8 @@ var
     end;
 
 procedure Init_Config();
+procedure Init_ConfigLayout();
+procedure Final_ConfigFree();
 
 implementation
 
@@ -383,6 +386,16 @@ begin
         end;
     end;
 
+end;
+
+procedure Init_ConfigLayout();
+begin
+    /// TODO
+end;
+
+procedure Final_ConfigFree();
+begin
+    /// TODO
 end;
 
 constructor TJustChatConfig_TerminalConfig.Create;
@@ -681,6 +694,7 @@ constructor TJustChatService_MinecraftTerminal.Create(AID : ansistring; inherit 
 begin
     ID := AID;
     Config := TJustChatConfig_TerminalConfig.CreateFromConfig(nil, inherit);
+    Connection := nil;
 end;
 
 destructor TJustChatService_MinecraftTerminal.Destroy;

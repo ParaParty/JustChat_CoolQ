@@ -3,9 +3,9 @@ unit Plugin_events;
 interface
 
 uses
-	CoolQSDK,iconv,
-	sysutils,windows,classes,
-	JustchatConfig,JustchatServer,Justchat;
+	CoolQSDK, iconv,
+	sysutils, windows, classes,
+	JustchatConfig, JustchatServer;
 
 
 Function code_eventStartup:longint;
@@ -73,15 +73,8 @@ Begin
 
 	pluginEnabledEver:=true;
 	Init_Config();
+	Init_ConfigLayout();
 
-	PonMessageReceived:=@onMessageReceived;
-	PMSG_Register:=@MSG_Register;
-	PonClientDisconnect:=@onClientDisconnect;
-	
-	createthread(nil,0,@StartService,nil,0,JustchatServer_PID);
-
-	if (upcase(ServerConfig.mode)='CLIENT') and (ServerConfig.pulseInterval>0) then
-		SetTimer(0,2, ServerConfig.pulseInterval*1000, @MSG_Pulse);
 
 {$IFDEF FPC}
 	exit(0)

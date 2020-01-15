@@ -22,10 +22,8 @@ Uses
 	iconv, CoolQSDK,		//酷QSDK单元
 	windows, math, dateutils, sysutils, Classes,
 	
-    JustChatConfig_TerminalConfig, 
-    JustChatService_Services,
-
-	JustChatConfig_Readin, JustchatServer, Justchat,
+	Tools,
+    JustChatConfig, JustchatServer,
 
 	plugin_events, //插件事件处理单元
 	plugin_menu //插件菜单处理单元
