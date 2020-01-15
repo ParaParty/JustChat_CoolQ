@@ -2,19 +2,19 @@ unit JustChatConfig;
 {$MODE OBJFPC}
 
 interface
+/// 引入
 uses
     windows, classes, sysutils,
     fpjson, jsonparser,
     Tools,
-    gutil, gmap, gset,
-
-    JustChatService_Terminal, JustChatService_QQGroupsTerminal,JustChatService_MinecraftTerminal
+    gutil, gmap, gset
 
     {$IFDEF __FULL_COMPILE_}
     ,CoolQSDK
     {$ENDIF}
     ;
 
+/// 类型定义
 type
     {
         JustChat 设置
@@ -45,11 +45,14 @@ type
         name : ansistring;
     end;
 
+type
     AnsistringLess= specialize TLess<ansistring>;
+    Int64Less= specialize TLess<int64>;
     StringBooleanMap = specialize TMap<ansistring,boolean, AnsistringLess>;
     StringStringMap = specialize TMap<ansistring,ansistring, AnsistringLess>;
 
-Const
+/// 常量定义
+const
 	ServerPackVersion = 3;
 
     TMsgType_HEARTBEATS = 0;
@@ -81,8 +84,48 @@ type TJustChatConfig_TerminalConfig = class
         destructor Destroy;override;
         function Event_isEnabled(event : ansistring):boolean;
         function Message_Get(key : ansistring):ansistring;
+        procedure InsertConfig(config : TJsonData);
+
 
         class function CreateFromConfig(config : TJsonData; inherit:TJustChatConfig_TerminalConfig=nil): TJustChatConfig_TerminalConfig; static;
+end;
+
+{
+    终端
+}
+type TJustChatService_Terminal = class
+    protected
+        Config : TJustChatConfig_TerminalConfig;
+    public
+        constructor Create;
+        destructor Destroy; override;
+        function GetID : int64; virtual;
+        function GetID : ansistring; virtual;
+        procedure InsertConfig(aConfig :TJsonData);
+end;
+
+{
+    QQ群终端
+}
+type TJustChatService_QQGroupsTerminal = class(TJustChatService_Terminal)
+    private
+        ID : int64;
+    public
+        constructor Create(AID : int64; inherit : TJustChatConfig_TerminalConfig);
+        destructor Destroy;override;
+        function GetID : int64;
+end;
+
+{
+    MC终端
+}
+type TJustChatService_MinecraftTerminal = class(TJustChatService_Terminal)
+    private
+        ID : ansistring;
+    public
+        constructor Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig);
+        destructor Destroy;override;
+        function GetID : ansistring;
 end;
 
 {
@@ -92,12 +135,16 @@ type TGenerallyLess = class
   class function c(a,b:TObject):boolean;inline;
 end;
 
+type
+    TJustChatService_TerminalSet = specialize TSet<TJustChatService_Terminal, TGenerallyLess>;
+
+    TJustChatService_QQGroupsTerminalMap = specialize TMap<int64, TJustChatService_QQGroupsTerminal, Int64Less>;
+    TJustChatService_MinecraftTerminalMap = specialize TMap<ansistring, TJustChatService_MinecraftTerminal, AnsistringLess>;
+
 {
     配置文件，服务组
 }
 type TJustChatConfig_Services = class
-    type
-        TJustChatService_TerminalSet = specialize TSet<TJustChatService_Terminal, TGenerallyLess>;
     private
         TerminalSet : TJustChatService_TerminalSet;
         Config : TJustChatConfig_TerminalConfig;
@@ -106,7 +153,10 @@ type TJustChatConfig_Services = class
         destructor Destroy;override;
 end;
 
-Var
+type
+    TJustChatConfig_ServicesSet = specialize TSet<TJustChatConfig_Services, TGenerallyLess>;
+
+var
     {
         JustChat 设置
         总体设置
@@ -116,8 +166,10 @@ Var
         Connection : JustChat_ConnectionConfig; // 连接设置
 
         Global_Configuration : TJustChatConfig_TerminalConfig; // 全局设置
+        Services : TJustChatConfig_ServicesSet; // 服务组设置
 
-        Services : array of TJustChatConfig_Services; // 服务组设置
+        QQGroupTerminals : TJustChatService_QQGroupsTerminalMap;
+        MinecraftTerminals : TJustChatService_MinecraftTerminalMap;
     end;
 
 procedure Init_Config();
@@ -140,6 +192,7 @@ end;
 function GenerateConfig():longint;
 begin
     if (Is_FileStatus(CQ_i_getAppDirectory+'config.ini')=0) then begin
+        /// TODO
         /// 存在旧版本配置文件
         /// 把文件搬走然后给你重建配置文件
     end;
@@ -153,6 +206,7 @@ end;
 function UpdateConfig(Config:TJsonData):longint;
 begin
     if ((Config.findPath('version.config')=nil) or (Config.findPath('version.config').AsInt64 < 2)) then begin
+        /// TODO
         /// 存在旧版本配置文件
         /// 把文件搬走然后给你重建配置文件
     end;
@@ -178,6 +232,12 @@ procedure Init_Config();
 var
     Config,T:TJsonData;
     tmpObject:TJsonObject;
+
+    i : longint;
+    tmpService : TJustChatConfig_Services;
+
+    groupid : int64;
+    tmpGroupTerminal : TJustChatService_QQGroupsTerminal;
 begin
     Justchat_Config.Connection.Server.Enable := false;
     Justchat_Config.Connection.Client.Enable := false;
@@ -223,9 +283,10 @@ begin
             if Config.findPath('connection.client')<>nil then begin
                 T:=Config.findPath('connection.client');
                 if (T.findPath('enable')<>nil) and (T.findPath('enable').AsBoolean) then begin
+                    /// TODO
                     /// 咕咕咕
                     {$IFDEF CoolQSDK}
-                    CQ_i_addLog(CQ_LOG_WARNING,'Init_Config','Client mode is under development.');
+                    CQ_i_addLog(CQ_LOG_WARNING,'Configuration','Client mode is under development.');
                     {$ENDIF}
                 end;
             end;
@@ -245,15 +306,52 @@ begin
 
 
             /// 读取全局配置
-            Justchat_Config.Global_Configuration := TJustChatConfig_TerminalConfig.CreateFromConfig(Config.findPath('global_configuration') ,nil);
+            Justchat_Config.Global_Configuration := TJustChatConfig_TerminalConfig.CreateFromConfig(Config.findPath('global_configuration'), nil);
+
+            JustChat_Config.QQGroupTerminals := TJustChatService_QQGroupsTerminalMap.Create();
+            JustChat_Config.MinecraftTerminals := TJustChatService_MinecraftTerminalMap.Create();
 
             /// 读取服务组配置
-            
-
-            //Justchat_Config.Services 
+            if (Config.findPath('services')<>nil) and (Config.findPath('services').JSONType = jtArray) and (Config.findPath('services').Count > 0) then begin
+                Justchat_Config.Services := TJustChatConfig_ServicesSet.Create();
+                for i:= 0 to Config.findPath('services').Count-1 do begin
+                    T := Config.findPath('services['+NumToChar(i)+']');
+                    if T.JsonType <> jtObject then begin
+                        {$IFDEF CoolQSDK}
+                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An invalid service configuration was detected.'+CRLF+T.FormatJson());
+                        {$ENDIF}
+                        continue;
+                    end;
+                    TmpService := TJustChatConfig_Services.Create(T, Justchat_Config.Global_Configuration);
+                    Justchat_Config.Services.Insert(TmpService);
+                end;
+            end else begin
+                Justchat_Config.Global_Configuration.Destroy();
+                JustChat_Config.QQGroupTerminals.Destroy();
+                JustChat_Config.MinecraftTerminals.Destroy();
+                raise Exception.Create('Services configuration must be set.');
+            end;
 
             /// 读取群配置
-            //Justchat_Config.Groups  
+            if (Config.findPath('qqgroups')<>nil) and (Config.findPath('qqgroups').JSONType = jtArray) and (Config.findPath('qqgroups').Count > 0) then begin
+                for i:= 0 to Config.findPath('qqgroups').Count-1 do begin
+                    if T.JsonType <> jtObject then begin
+                        {$IFDEF CoolQSDK}
+                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An invalid qqgroups configuration was detected.'+CRLF+T.FormatJson());
+                        {$ENDIF}
+                        continue;
+                    end;
+
+                    groupid := T.findPath('groupid').asInt64;
+                    if JustChat_Config.QQGroupTerminals.TryGetValue(groupid, tmpGroupTerminal) then begin
+                        tmpGroupTerminal.InsertConfig(T.findPath('config'));
+                    end else begin
+                        {$IFDEF CoolQSDK}
+                        CQ_i_addLog(CQ_LOG_WARNING,'Configuration','An unused qqgroups configuration was detected.'+CRLF+T.FormatJson());
+                        {$ENDIF}
+                    end;
+                end;
+            end;
 
             /// 保存配置文件
             Config_Save(Config);
@@ -264,7 +362,7 @@ begin
             Justchat_Config.Connection.Server.Enable := false;
             Justchat_Config.Connection.Client.Enable := false;
             {$IFDEF CoolQSDK}
-            CQ_i_setFatal(CQLOG_FATAL, 'Config', 'Can not load configuration.'+CRLF+AnsiToUTF8(e.message));
+            CQ_i_setFatal(CQLOG_FATAL, 'Configuration', 'Can not load configuration.'+CRLF+AnsiToUTF8(e.message));
             {$ENDIF}
         end;
     end;
@@ -309,7 +407,7 @@ begin
     if not MessagesMap.TryGetValue(upcase(key), ret) then begin
         if inheritFrom <> nil then ret:=inheritFrom.Message_Get(key) else begin
             /// 没有指派
-            exit('')
+            exit('');
         end;
     end;
 
@@ -321,16 +419,11 @@ begin
     MessagesMap.Insert(upcase(key),value);
 end;
 
-class function TJustChatConfig_TerminalConfig.CreateFromConfig(config : TJsonData; inherit:TJustChatConfig_TerminalConfig=nil): TJustChatConfig_TerminalConfig; static;
+procedure TJustChatConfig_TerminalConfig.InsertConfig(config : TJsonData);
 var
 	enum : TBaseJSONEnumerator;
     current : TJSONEnum;
-
-    ret : TJustChatConfig_TerminalConfig;
 begin
-    ret := TJustChatConfig_TerminalConfig.Create();
-
-    ret.inheritFrom:=inherit;
 
     /// 读入事件设置
     if (config<>nil) and (config.findPath('events')<>nil) then begin
@@ -343,7 +436,7 @@ begin
                 current := enum.GetCurrent();
 
                 try
-                    ret.Event_Set(current.key,current.value.asboolean)
+                    self.Event_Set(current.key,current.value.asboolean)
                 except
                     on e: Exception do begin
                         {$IFDEF CoolQSDK}
@@ -373,7 +466,7 @@ begin
                 current := enum.GetCurrent();
 
                 try
-                    ret.Message_Set(current.key,current.value.asstring)
+                    self.Message_Set(current.key,current.value.asstring)
                 except
                     on e: Exception do begin
                         {$IFDEF CoolQSDK}
@@ -392,6 +485,16 @@ begin
         end;
     end;
 
+end;
+
+
+class function TJustChatConfig_TerminalConfig.CreateFromConfig(config : TJsonData; inherit:TJustChatConfig_TerminalConfig=nil): TJustChatConfig_TerminalConfig; static;
+var
+    ret : TJustChatConfig_TerminalConfig;
+begin
+    ret := TJustChatConfig_TerminalConfig.Create();
+    ret.inheritFrom:=inherit;
+    ret.InsertConfig(config);
     exit(ret);
 end;
 
@@ -400,6 +503,8 @@ constructor TJustChatConfig_Services.Create(Aconfig :TJsonData; inherit : TJustC
 var
     tmp,cnt : TJsonData;
     i : longint;
+
+    t : TJustChatService_Terminal;
 begin
     TerminalSet := TJustChatService_TerminalSet.Create();
 
@@ -425,6 +530,11 @@ begin
             CQ_i_addLog(CQLOG_WARNING,'Configuration','QQ Groups declaration in a service must be a JSONArray.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
         end else begin
+            if tmp.getPath('qqgroups').count = 0 then begin
+                {$IFDEF CoolQSDK}
+                CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no QQ Groups was detected.'+CRLF+Aconfig.FormatJson());
+                {$ENDIF}
+            end;
             for i:= 0 to tmp.getPath('qqgroups').count-1 do begin
                 cnt := tmp.getPath('qqgroups['+NumToChar(i)+']');
                 if (cnt.JSONType <> jtNumber) then begin
@@ -434,6 +544,11 @@ begin
                 end else begin
                     /// 读入QQ群配置
 
+                    /// TODO 判断是否已经出现过
+
+                    t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config);
+                    TerminalSet.Insert(t);
+                    JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, TJustChatService_QQGroupsTerminal(t));
                 end;
 
             end;
@@ -448,6 +563,11 @@ begin
             CQ_i_addLog(CQLOG_WARNING,'Configuration','Minecraft terminals declaration in a service must be a JSONArray.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
         end else begin
+            if tmp.getPath('minecraft').count = 0 then begin
+                {$IFDEF CoolQSDK}
+                CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no Minecraft terminal was detected.'+CRLF+Aconfig.FormatJson());
+                {$ENDIF}
+            end;
             for i:= 0 to tmp.getPath('minecraft').count-1 do begin
                 cnt := tmp.getPath('minecraft['+NumToChar(i)+']');
                 if (cnt.JSONType <> jtString) or (not IsGuid(cnt.AsString)) then begin
@@ -457,6 +577,11 @@ begin
                 end else begin
                     /// 读入MC终端群配置
 
+                    /// TODO 判断是否已经出现过
+
+                    t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config);
+                    TerminalSet.Insert(t);
+                    JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, TJustChatService_MinecraftTerminal(t));
                 end;
 
             end;
@@ -475,11 +600,67 @@ end;
 class function TGenerallyLess.c(a,b:TObject):boolean;inline;
 begin
     if sizeof(pointer)=4 then
-        exit ( longint(pointer(a))<longint(pointer(b)) )
+        exit ( dword(pointer(a)) < dword(pointer(b)) )
     else if sizeof(pointer)=8 then
-        exit ( int64(pointer(a))<int64(pointer(b)) )
+        exit ( qword(pointer(a)) < qword(pointer(b)) )
     else raise Exception.Create('');
 end;
 
+constructor TJustChatService_Terminal.Create;
+begin
+end;
+
+destructor TJustChatService_Terminal.Destroy;
+begin
+end;
+
+function TJustChatService_Terminal.GetID() : int64;
+begin
+    raise Exception.Create('No Number ID specified.');
+    exit(-1);
+end;
+
+function TJustChatService_Terminal.GetID() : ansistring;
+begin
+    raise Exception.Create('No Number UUID specified.');
+    exit('');
+end;
+
+procedure TJustChatService_Terminal.InsertConfig(aConfig : TJsonData);
+begin
+    Config.InsertConfig(aConfig)
+end;
+
+constructor TJustChatService_QQGroupsTerminal.Create(AID : int64; inherit : TJustChatConfig_TerminalConfig);
+begin
+    ID := AID;
+    Config := TJustChatConfig_TerminalConfig.CreateFromConfig(nil, inherit);
+end;
+
+destructor TJustChatService_QQGroupsTerminal.Destroy;
+begin
+    Config.Destroy();
+end;
+
+function TJustChatService_QQGroupsTerminal.GetID():int64;
+begin
+    exit(ID);
+end;
+
+constructor TJustChatService_MinecraftTerminal.Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig);
+begin
+    ID := AID;
+    Config := TJustChatConfig_TerminalConfig.CreateFromConfig(nil, inherit);
+end;
+
+destructor TJustChatService_MinecraftTerminal.Destroy;
+begin
+    Config.Destroy();
+end;
+
+function TJustChatService_MinecraftTerminal.GetID : ansistring;
+begin
+    exit(ID);
+end;
 
 end.
