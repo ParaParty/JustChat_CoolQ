@@ -4,23 +4,21 @@
 	},
 	"connections": {
 		"server" : {
-			"enable": false,
+			"enable": true,
 			"port": 38440
 		},
 		"client" : {
-			"enable": false,
+			"enable": true,
 			"address": "",
             "port": 38440,
             "pulse_interval": 20
-		},
-		"ID": "",
-		"name": ""
+		}
 	},
 	"services": [
 		{
 			"bind": {
 				"qqgroups": [
-					123456789
+					123456789,123456789
 				],
 				"minecraft": [
 					"UUID1"
@@ -34,7 +32,7 @@
 					1919810
 				],
 				"minecraft": [
-					"UUID3"
+					"1be33c06-39c3-41b1-8678-ebd00a0f1ef6"
 				]
 			}
 		}
@@ -56,7 +54,10 @@
 					"Msg_INFO_PlayerDead": "%SENDER% dead."
 				}
 			}
-		}
+        }
+        {
+            "groupid": 123456
+        }
 	],
 	"global_configuration": {
 		"events": {

@@ -31,6 +31,9 @@ type
     }
     JustChat_ClientConfig = record
         enable : boolean;
+        address : ansistring;
+        port : word;
+        pulseInterval : longint;
     end;
 
     {
@@ -283,11 +286,24 @@ begin
             if Config.findPath('connection.client')<>nil then begin
                 T:=Config.findPath('connection.client');
                 if (T.findPath('enable')<>nil) and (T.findPath('enable').AsBoolean) then begin
-                    /// TODO
-                    /// 咕咕咕
-                    {$IFDEF CoolQSDK}
-                    CQ_i_addLog(CQ_LOG_WARNING,'Configuration','Client mode is under development.');
-                    {$ENDIF}
+                    tmpObject := TJsonObject(Config.findPath('connection.client'));
+                    
+                    if tmpObject.findPath('address') = nil then begin
+                        raise Exception.Create('Server address in client mode configuration must be specified.');
+                    end;
+
+                    if tmpObject.findPath('port') = nil then begin
+                        raise Exception.Create('Server port in client mode configuration must be specified.');
+                    end;
+
+                    if tmpObject.findPath('pulseInterval') = nil then begin
+                        tmpObject.add('pulse_interval',20);
+                    end;
+
+                    Justchat_Config.Connection.Client.address := tmpObject.findPath('address').asString;
+                    Justchat_Config.Connection.Client.port := tmpObject.findPath('port').asInt64;
+                    Justchat_Config.Connection.Client.pulseInterval := tmpObject.findPath('pulseInterval').asInt64;
+
                 end;
             end;
 
@@ -544,11 +560,18 @@ begin
                 end else begin
                     /// 读入QQ群配置
 
-                    /// TODO 判断是否已经出现过
+                    if JustChat_Config.QQGroupTerminals.GetValue(cnt.AsInt64) <> nil then begin
+                        /// 出现过
+                        {$IFDEF CoolQSDK}
+                        CQ_i_addLog(CQLOG_WARNING,'Configuration',format('A QQ Group [%d] was declared more than once.',[cnt.AsInt64]));
+                        {$ENDIF}
+                    end else begin
+                        /// 未出现过
+                        t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config);
+                        TerminalSet.Insert(t);
+                        JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, TJustChatService_QQGroupsTerminal(t));
+                    end;
 
-                    t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config);
-                    TerminalSet.Insert(t);
-                    JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, TJustChatService_QQGroupsTerminal(t));
                 end;
 
             end;
@@ -577,11 +600,18 @@ begin
                 end else begin
                     /// 读入MC终端群配置
 
-                    /// TODO 判断是否已经出现过
+                    if JustChat_Config.MinecraftTerminals.GetValue(cnt.AsString) <> nil then begin
+                        /// 出现过
+                        {$IFDEF CoolQSDK}
+                        CQ_i_addLog(CQLOG_WARNING,'Configuration',format('A Minecraft [%s] was declared more than once.',[cnt.AsString]));
+                        {$ENDIF}
+                    end else begin
+                        /// 未出现过
+                        t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config);
+                        TerminalSet.Insert(t);
+                        JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, TJustChatService_MinecraftTerminal(t));
+                    end;
 
-                    t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config);
-                    TerminalSet.Insert(t);
-                    JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, TJustChatService_MinecraftTerminal(t));
                 end;
 
             end;

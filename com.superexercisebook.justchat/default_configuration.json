@@ -11,7 +11,7 @@
 			"enable": false,
 			"address": "",
             "port": 38440,
-            "pulseInterval": 20
+            "pulse_interval": 20
 		},
 		"ID": "",
 		"name": ""
