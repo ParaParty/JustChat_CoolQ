@@ -39,6 +39,7 @@ var
     s,f:string;
     i:longint;
 begin
+	a:=lowercase(a);
     s:='0123456789abcdef';
 	f:='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
     
