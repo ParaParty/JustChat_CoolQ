@@ -64,7 +64,7 @@ type TJustChatService = class
         procedure ServerOnDisconnect(AContext: TIdContext);
         procedure ServerOnExecute(AContext: TIdContext);
         ///procedure ServerOnStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
- 
+ 		procedure ServerOnException(AContext: TIdContext; AException: Exception);
 
 		procedure ServerStart();
 		procedure ServerStop();
@@ -76,6 +76,7 @@ type TJustChatService = class
 	public
 		constructor Create();
 		destructor Destroy(); override;
+		function getConnectionsAmount():longint;
 end;
 
 var
@@ -85,7 +86,7 @@ implementation
 	
 procedure CloseService();
 begin
-	
+	JustChatService.Destroy();
 end;
 
 procedure StartService();
@@ -102,7 +103,6 @@ end;
 
 destructor TJustChatService.Destroy();
 begin
-	ConnectionsMap.Destroy();
 	ServerStop();
 	ClientStop();
 end;
@@ -117,6 +117,7 @@ begin
 			JustChatServer.OnDisconnect := @ServerOnDisconnect;
 			JustChatServer.OnExecute := @ServerOnExecute;
 			//JustChatServer.OnStatus := ServerOnStatus;
+			JustChatServer.OnException := @ServerOnException;
 			JustChatServer.Active := true;
 		except
 			on e: Exception do begin
@@ -130,7 +131,20 @@ begin
 end;
 
 procedure TJustChatService.ServerStop();
+var
+	AConnection : TIdTCPConnection;
+	ATerminal : TJustChatTerminal;	
 begin
+	
+    while (not ConnectionsMap.isEmpty()) do begin
+        AConnection:=ConnectionsMap.min.Data.Key;
+        ATerminal:=ConnectionsMap.min.Data.Value;
+        ConnectionsMap.Delete(AConnection);
+		AConnection.Disconnect();
+        ATerminal.Destroy();
+    end;
+	ConnectionsMap.Destroy();
+
 	JustChatServer.Active := false;
 end;
 
@@ -183,9 +197,9 @@ var
 begin
 	/// 将本终端从终端列表中移除
 	Terminal := nil;
-	ConnectionsMap.TryGetValue(AContext.Connection, Terminal);
-
-	ConnectionsMap.Delete(AContext.Connection);
+	if ConnectionsMap.TryGetValue(AContext.Connection, Terminal) then begin
+		ConnectionsMap.Delete(AContext.Connection);
+	end;
 
 	/// 如果本终端原本存在
 	if (Terminal <> nil) then begin
@@ -220,9 +234,9 @@ begin
 	end;
 
 	try
-		repeat 
+		//repeat 
 			Terminal.MessageBufferPush(AContext.Connection.Socket.ReadChar);
-		until Terminal.MessageBufferCheck();		
+		//until Terminal.MessageBufferCheck();		
 	except
 		on e: Exception do begin
 			{$IFDEF CoolQSDK}
@@ -234,12 +248,9 @@ begin
 		end;
 	end;
 
-	Terminal.OnMessageReceived();
+	if Terminal.MessageBufferCheck() then Terminal.OnMessageReceived();
 
 end;
-
-
-
 
 {
 procedure TJustChatService.ServerOnStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
@@ -247,6 +258,16 @@ begin
 	
 end;
 }
+
+procedure TJustChatService.ServerOnException(AContext: TIdContext; AException: Exception);
+begin
+	CQ_i_addLog(CQLOG_ERROR, 'Server', format('Client : %s:%d', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]) + CRLF + AException.ClassName + ': ' + AException.Message );
+end;
+
+function TJustChatService.getConnectionsAmount():longint;
+begin
+	exit( ConnectionsMap.Size() );
+end;
 
 constructor TJustChatTerminal.Create;
 begin
@@ -579,5 +600,33 @@ procedure TJustChatTerminal.Broadcast(MSG : TJustChatStructedMessage);
 begin
 	ConnectedTerminal.Broadcast(MSG);
 end;
+
+Procedure NewCatchUnhandledException (Obj : TObject; Addr: CodePointer; FrameCount: Longint; Frames: PCodePointer);
+var
+	i : longint;
+	s : ansistring;
+begin
+
+	s := 'An unhandled exception occurred at $' + HexStr(Addr) + ':' + CRLF;
+
+	if Obj is exception then
+		s := s + Obj.ClassName + ': ' + Exception(Obj).Message + CRLF
+	else if Obj is TObject then
+		s := s + 'Exception object ' + Obj.ClassName + ' is not of class Exception.' + CRLF
+	else
+		s := s + 'Exception object is not ia valid class.'  + CRLF;
+
+	s := s + BackTraceStrFunc(Addr) + CRLF;
+
+	if (FrameCount>0) then	begin
+		for i := 0 to FrameCount - 1 do
+			s := s + BackTraceStrFunc(Frames[i]) + CRLF;
+	end;
+
+	CQ_i_SetFatal(s);
+end;
+
+initialization
+	ExceptProc := @NewCatchUnhandledException;
 
 end.

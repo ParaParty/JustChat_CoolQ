@@ -18,6 +18,13 @@ Function _menuA():longint;
 stdcall;
 Begin
 	//MessageBox(0,StoP('本插件的AuthCode为 : '+NumToChar(AuthCode)),'样例 _ AuthCode查询',36);
+
+	if JustChatService.getConnectionsAmount() > 0 then begin
+		CQ_i_addLog(CQLOG_WARNING, 'Reload', 'Failed to reload configuration.' + CRLF +
+			'Reloading operation requires no connection connected to this terminal so far.');
+		exit(0);
+	end;
+
 	CloseService();	
 	Final_ConfigFree();
 	

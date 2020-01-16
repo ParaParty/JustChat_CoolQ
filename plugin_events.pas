@@ -26,7 +26,7 @@ Function code_eventRequest_AddGroup(subType,sendTime:longint;fromGroup,fromQQ:in
 implementation
 
 Var
-	pluginEnabledEver:boolean;
+	pluginEnabled:boolean;
 
 {
 * Type=1001 酷Q启动
@@ -49,7 +49,7 @@ End;
 }
 Function code_eventExit:longint;
 Begin
-	if pluginEnabledEver then begin
+	if pluginEnabled then begin
 		CloseService();
 		Final_ConfigFree();
 	end;
@@ -69,17 +69,12 @@ End;
 Function code_eventEnable:longint;
 Begin
 
-	if pluginEnabledEver then begin
-		CQ_i_addLog(CQLOG_WARNING,'JustChat','Please RESTART your CoolQ instead of re-enabling the plugin.');
-		exit(0);
+	if (not pluginEnabled) then begin
+		Init_Config();
+		Init_ConfigLayout();
+		StartService();
 	end;
-
-	pluginEnabledEver:=true;
-	Init_Config();
-	Init_ConfigLayout();
-
-	StartService();
-
+	pluginEnabled:=true;
 {$IFDEF FPC}
 	exit(0)
 {$ELSE}
@@ -95,6 +90,11 @@ End;
 }
 Function code_eventDisable:longint;
 Begin
+	if (pluginEnabled) then begin
+		CloseService();
+		Final_ConfigFree();
+	end;
+	pluginEnabled:=false;
 {$IFDEF FPC}
 	exit(0);
 {$ELSE}
@@ -321,6 +321,6 @@ Begin
 End;
 
 initialization
-	pluginEnabledEver:=false;
+	pluginEnabled:=false;
 
 end.

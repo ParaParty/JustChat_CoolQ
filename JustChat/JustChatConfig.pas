@@ -471,8 +471,41 @@ begin
 end;
 
 procedure Final_ConfigFree();
+var
+    AService : TJustChatConfig_Services;
+
+    AQQGroupTerminal : TJustChatService_QQGroupsTerminal;
+    AQQGroup : int64;
+
+    AMinecraftTerminal : TJustChatService_MinecraftTerminal;
+    AMinecraft : ansistring;
 begin
-    /// TODO [DEBUG] 内存回收
+
+    JustChat_Config.Global_Configuration.Destroy();
+
+    while (not JustChat_Config.Services.isEmpty()) do begin
+        AService:=JustChat_Config.Services.min.Data;
+        JustChat_Config.Services.Delete(AService);
+        AService.Destroy();
+    end;
+    JustChat_Config.Services.Destroy();
+
+    while (not JustChat_Config.QQGroupTerminals.isEmpty()) do begin
+        AQQGroupTerminal:=JustChat_Config.QQGroupTerminals.min.Data.Value;
+        AQQGroup:=JustChat_Config.QQGroupTerminals.min.Data.Key;
+        JustChat_Config.QQGroupTerminals.Delete(AQQGroup);
+        AQQGroupTerminal.Destroy();
+    end;
+    JustChat_Config.QQGroupTerminals.Destroy();
+    
+    while (not JustChat_Config.MinecraftTerminals.isEmpty()) do begin
+        AMinecraftTerminal:=JustChat_Config.MinecraftTerminals.min.Data.Value;
+        AMinecraft:=JustChat_Config.MinecraftTerminals.min.Data.Key;
+        JustChat_Config.MinecraftTerminals.Delete(AMinecraft);
+        AMinecraftTerminal.Destroy();
+    end;
+    JustChat_Config.MinecraftTerminals.Destroy();
+
 end;
 
 constructor TJustChatConfig_TerminalConfig.Create;

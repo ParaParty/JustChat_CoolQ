@@ -18,7 +18,7 @@
             }
         },
         {
-            "label": "Debug",
+            "label": "Debug -g",
             "type": "shell",
             "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
             "args": [
@@ -26,6 +26,22 @@
                 "-d__FULL_COMPILE_",
                 "-dCoolQSDK",
                 "-g"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Debug -Xg -Xm",
+            "type": "shell",
+            "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
+            "args": [
+                "com.superexercisebook.justchat.pas",
+                "-d__FULL_COMPILE_",
+                "-dCoolQSDK",
+                "-Xg",
+                "-Xm"
             ],
             "group": {
                 "kind": "build",
