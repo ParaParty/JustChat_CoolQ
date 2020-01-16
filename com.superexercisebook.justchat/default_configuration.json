@@ -3,15 +3,15 @@
 		"config": 2
 	},
 	"connection": {
-		"server" : {
+		"server": {
 			"enable": false,
 			"port": 38440
 		},
-		"client" : {
+		"client": {
 			"enable": false,
 			"address": "",
-            "port": 38440,
-            "pulse_interval": 20
+			"port": 38440,
+			"pulse_interval": 20
 		},
 		"ID": "",
 		"name": ""
@@ -30,16 +30,23 @@
 	],
 	"global_configuration": {
 		"events": {
+			"Registration_All": true,
 			"Info_all": true,
 			"Info_Network": true,
 			"Info_PlayerDeath": true,
 			"Info_other": true,
-			"playerList": true
+			"Message_All": true,
+			"PlayerList_All": true
 		},
 		"message_format": {
-			"Msg_INFO_Join": "%SENDER% joined the game.",
-			"Msg_INFO_Disconnect": "%SENDER% left the game.",
-			"Msg_INFO_PlayerDead": "%SENDER% dead."
+			"Msg_INFO_General": "[%SERVER%] %CONTENT%",
+			"Msg_INFO_Join": "[%SERVER%] %SENDER% joined the game.",
+			"Msg_INFO_Disconnect": "[%SERVER%] %SENDER% left the game.",
+			"Msg_INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
+			"Msg_Text_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
+			"Msg_Server_Playerlist": "[%SERVER%] There are %NOW%/%MAX% players online.",
+			"Event_online": "Server %NAME% is now online.",
+			"Event_offline": "Server %NAME% is now offline."
 		}
 	}
 }
