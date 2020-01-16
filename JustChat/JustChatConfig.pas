@@ -385,6 +385,7 @@ begin
 
             if (Config.findPath('connection.ID')=nil) or (not IsGUID(Config.findPath('connection.ID').asString)) then begin
                 tmpObject := TJsonObject(Config.findPath('connection'));
+                if (tmpObject.findPath('ID')<>nil) then tmpObject.Delete('ID');
                 tmpObject.Add('ID',Guid_Gen());
             end;
             
