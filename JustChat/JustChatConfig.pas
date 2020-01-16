@@ -67,9 +67,18 @@ const
     TMSGTYPE_PLAYERLIST_Request = 0;
     TMSGTYPE_PLAYERLIST_Response = 1;
 
+    REGISTRATION_MINECRAFT = 0;
+    REGISTRATION_IDENTITY = 1;
+
     TMsgType_INFO_Join = 1;
     TMsgType_INFO_Disconnect = 2;
     TMsgType_INFO_PlayerDead = 3;
+
+	MessageHeader = #$11+#$45+#$14;
+	//PulseHeader = #$70+#$93+#$94;
+	SUBSTRING = #$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A;
+
+    Const_ThreadWaitingTime = 5000;
 
 {
     配置对象
@@ -94,17 +103,61 @@ type TJustChatConfig_TerminalConfig = class
 end;
 
 {
+    格式化后数据包
+}
+type TJustChatStructedMessage = class
+    const
+        Registration_All = 'Registration_All';
+        Info_All = 'Info_All';
+        Info_Network = 'Info_Network';
+        Info_PlayerDeath = 'Info_PlayerDeath';
+        Info_Other = 'Info_Other';
+        PlayerList = 'PlayerList';
+
+        Msg_INFO_General = 'Msg_INFO_General';
+        Msg_INFO_Join = 'Msg_INFO_Join';
+        Msg_INFO_Disconnect = 'Msg_INFO_Disconnect';
+        Msg_INFO_PlayerDead = 'Msg_INFO_PlayerDead';
+        Msg_Text_Overview = 'Msg_Text_Overview';
+        Msg_Server_Playerlist = 'Msg_Server_Playerlist';
+        Event_online = 'Event_online';
+        Event_offline = 'Event_offline';
+    private
+        structedMsg : ansistring;
+        
+        msgType : ansistring;
+        eventType : ansistring;
+
+        MessageReplacementsLength : longint;
+        MessageReplacements : array of record
+            k,v : ansistring;
+        end;
+    public
+        constructor Create(aMsgType, aEventType, aStructedMsg:ansistring);
+        procedure MessageReplacementsAdd(k,v:ansistring);
+        function QQGroupFormater(sFormat : TJustChatConfig_TerminalConfig) : ansistring;
+        function MinecraftFormatter() : ansistring;
+end;
+
+type TJustChatConfig_Services = class;
+
+{
     终端
 }
 type TJustChatService_Terminal = class
     protected
         Config : TJustChatConfig_TerminalConfig;
+        Service : TJustChatConfig_Services;
+
+        hMutex	: handle;
     public
         constructor Create;
         destructor Destroy; override;
         function GetID : int64; virtual;
         function GetID : ansistring; virtual;
         procedure InsertConfig(aConfig :TJsonData);
+        function Send(MSG : TJustChatStructedMessage):longint; virtual;
+        procedure Broadcast(MSG : TJustChatStructedMessage);
 end;
 
 {
@@ -114,9 +167,10 @@ type TJustChatService_QQGroupsTerminal = class(TJustChatService_Terminal)
     private
         ID : int64;
     public
-        constructor Create(AID : int64; inherit : TJustChatConfig_TerminalConfig);
+        constructor Create(AID : int64; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
         destructor Destroy;override;
         function GetID : int64;
+        function Send(MSG : TJustChatStructedMessage):longint; override;
 end;
 
 {
@@ -127,9 +181,12 @@ type TJustChatService_MinecraftTerminal = class(TJustChatService_Terminal)
         ID : ansistring;
         Connection : TIdTCPConnection;
     public
-        constructor Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig);
+        name : ansistring;
+
+        constructor Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
         destructor Destroy;override;
         function GetID : ansistring;
+        function Send(MSG : TJustChatStructedMessage):longint; override;
 end;
 
 {
@@ -580,7 +637,7 @@ begin
                         {$ENDIF}
                     end else begin
                         /// 未出现过
-                        t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config);
+                        t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config, self);
                         TerminalSet.Insert(t);
                         JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, TJustChatService_QQGroupsTerminal(t));
                     end;
@@ -620,7 +677,7 @@ begin
                         {$ENDIF}
                     end else begin
                         /// 未出现过
-                        t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config);
+                        t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config, self);
                         TerminalSet.Insert(t);
                         JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, TJustChatService_MinecraftTerminal(t));
                     end;
@@ -669,15 +726,34 @@ begin
     exit('');
 end;
 
+function TJustChatService_Terminal.Send(MSG : TJustChatStructedMessage):longint;
+begin
+    raise Exception.Create('Send() method is not implemented.');
+    exit(-1);
+end;
+
+procedure TJustChatService_Terminal.Broadcast(MSG : TJustChatStructedMessage);
+var
+    it:TJustChatService_TerminalSet.TIterator;
+begin
+    it:=Service.TerminalSet.min;
+    repeat
+        if it.Data <> self then Begin
+            it.Data.Send(MSG);
+        end;
+    until not it.next;
+end;
+
 procedure TJustChatService_Terminal.InsertConfig(aConfig : TJsonData);
 begin
     Config.InsertConfig(aConfig)
 end;
 
-constructor TJustChatService_QQGroupsTerminal.Create(AID : int64; inherit : TJustChatConfig_TerminalConfig);
+constructor TJustChatService_QQGroupsTerminal.Create(AID : int64; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
 begin
     ID := AID;
     Config := TJustChatConfig_TerminalConfig.CreateFromConfig(nil, inherit);
+    Service := parent;
 end;
 
 destructor TJustChatService_QQGroupsTerminal.Destroy;
@@ -690,10 +766,21 @@ begin
     exit(ID);
 end;
 
-constructor TJustChatService_MinecraftTerminal.Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig);
+function TJustChatService_QQGroupsTerminal.Send(MSG : TJustChatStructedMessage):longint;
+begin
+    {$IFDEF CoolQSDK}
+    exit(CQ_i_SendGroupMSG( GetID(), msg.QQGroupFormater(config) ));
+    {$ELSE}
+    exit(0);
+    {$IFEND}
+end;
+
+constructor TJustChatService_MinecraftTerminal.Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
 begin
     ID := AID;
     Config := TJustChatConfig_TerminalConfig.CreateFromConfig(nil, inherit);
+    Service := parent;
+    
     Connection := nil;
 end;
 
@@ -705,6 +792,63 @@ end;
 function TJustChatService_MinecraftTerminal.GetID : ansistring;
 begin
     exit(ID);
+end;
+
+function TJustChatService_MinecraftTerminal.Send(MSG : TJustChatStructedMessage):longint;
+Var
+	P : ansistring;
+	len : longint;
+
+    AMsg : ansistring;
+begin
+	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
+
+    AMsg := Msg.MinecraftFormatter;
+	len:=length(AMsg);
+	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + AMsg;
+	
+    Connection.Socket.Write(p);
+    exit(0);
+end;
+
+function TJustChatStructedMessage.MinecraftFormatter():ansistring;
+begin
+    exit(structedMsg);
+end;
+
+function TJustChatStructedMessage.QQGroupFormater(sFormat : TJustChatConfig_TerminalConfig) : ansistring;
+var
+    msg : ansistring;
+    i : longint;
+begin
+    if (sFormat.Event_isEnabled(eventType)) then begin
+        msg := sFormat.Message_Get(msgType);
+        for i:=0 to messageReplacementsLength-1 do begin
+            {$IFDEF CoolQSDK}
+            Message_Replace(msg,'%'+upcase(messageReplacements[i].k)+'%',messageReplacements[i].v);
+            {$IFEND}
+        end;
+        exit(msg);
+    end else begin
+        exit('');
+    end;
+end;
+
+constructor TJustChatStructedMessage.Create(aMsgType, aEventType, aStructedMsg:ansistring);
+begin
+    messageReplacementsLength := 0;
+
+    msgType := aMsgType;
+    eventType := aEventType;
+    structedMsg := aStructedMsg;
+end;
+
+procedure TJustChatStructedMessage.MessageReplacementsAdd(k,v:ansistring);
+begin
+    inc(messageReplacementsLength);
+    setlength(messageReplacements, messageReplacementsLength);
+    messageReplacements[messageReplacementsLength-1].k := k;
+    messageReplacements[messageReplacementsLength-1].v := v;
 end;
 
 end.

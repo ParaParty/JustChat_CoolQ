@@ -4,12 +4,13 @@ unit JustchatServer;
 interface
 uses
     windows, classes, sysutils,
+	fpjson, jsonparser,
 	gmap,
 	
 	IdTcpServer, IdContext, IdTCPConnection, 
 	//IdComponent,
 	
-
+	Tools,
 	JustChatConfig
 
 	{$IFDEF __FULL_COMPILE_}
@@ -24,18 +25,27 @@ type TJustChatTerminalStatus = (Start, Confirmed);
 
 type TJustChatTerminal = class
 	private
-		MessageBuffer : ansistring;
+		MessageBuffer	: ansistring;
+		AMSG			: ansistring;
+
+		procedure OnMessageHeartbeat(S : TJsonData);
+		procedure OnMessageRegistration(S : TJsonData);
+		procedure OnMessageInfo(S : TJsonData);
+		procedure OnMessageChat(S : TJsonData);
+
 	public
 		Connection : TIdTCPConnection;
 		ID : ansistring;
 		status : TJustChatTerminalStatus;
 
-		ConnectedService : TJustChatService_MinecraftTerminal;
+		ConnectedTerminal : TJustChatService_MinecraftTerminal;
 
 		constructor Create();
 		procedure MessageBufferPush(s:ansichar);inline;
-		function MessageBufferCheck(Var MSG : ansistring) : boolean;
-		procedure OnMessageReceived(Var MSG : ansistring);
+		function MessageBufferCheck() : boolean;
+		procedure OnMessageReceived();
+
+		procedure Broadcast(MSG : TJustChatStructedMessage);
 
 end;
 
@@ -68,11 +78,6 @@ var
 	JustChatService : TJustChatService;
 
 implementation
-
-const
-	MessageHeader = #$11+#$45+#$14;
-	//PulseHeader = #$70+#$93+#$94;
-	SUBSTRING = #$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A+#$1A;
 	
 procedure CloseService();
 begin
@@ -179,31 +184,30 @@ end;
 procedure TJustChatService.ServerOnExecute(AContext: TIdContext);
 var
 	Terminal : TJustChatTerminal;
-	MSG		: ansistring;
 begin
 	Terminal := ConnectionsMap.GetValue(AContext.Connection);
 	if Terminal = nil then begin
 		{$IFDEF CoolQSDK}
 		CQ_i_addLog(CQLOG_ERROR, 'Server', format('An invalid client %s:%d was detected.', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]));
-		{$IFEND}
+		{$ENDIF}
 	end;
 
 	try
 		repeat 
 			Terminal.MessageBufferPush(AContext.Connection.Socket.ReadChar);
-		until Terminal.MessageBufferCheck( MSG );		
+		until Terminal.MessageBufferCheck();		
 	except
 		on e: Exception do begin
 			{$IFDEF CoolQSDK}
 			CQ_i_addLog(CQLOG_ERROR, 'Server',
 				format('Client : %s:%d', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]) + CRLF + e.message
 			);
-			{$IFEND}
+			{$ENDIF}
 			AContext.Connection.Disconnect();
 		end;
 	end;
 
-	Terminal.OnMessageReceived(MSG);
+	Terminal.OnMessageReceived();
 
 end;
 
@@ -223,7 +227,7 @@ begin
 	ID := '';
 	Status := Start;
 
-	ConnectedService := nil;
+	ConnectedTerminal := nil;
 end;
 
 procedure TJustChatTerminal.MessageBufferPush(s:ansichar);inline;
@@ -231,12 +235,12 @@ begin
 	MessageBuffer := MessageBuffer + s;
 end;
 
-function TJustChatTerminal.MessageBufferCheck(Var MSG : ansistring) : boolean;
+function TJustChatTerminal.MessageBufferCheck() : boolean;
 Var
 	len		: longint;
 	position: longint;
 begin
-	
+	AMSG := '';
 	
 	if (length(MessageBuffer)>=1024*16) then begin
         raise Exception.Create('Buffer too long.');
@@ -246,31 +250,149 @@ begin
         raise Exception.Create('Client require to close.');
 	end;
 
-	position:=pos(MessageHeader,MessageBuffer);
-	if length(MessageBuffer)>=position-1+length(MessageHeader)+4 then begin
+	position:=pos(MessageHeader,MessageBuffer);	// 数据包起始点
+
+	if length(MessageBuffer) >= position - 1 + (length(MessageHeader) + 4) then begin // 数据包足够包头长度
 		len:=longint(
-				longint(MessageBuffer[position-1+length(MessageHeader)+1]) * 1<<24 +
-				longint(MessageBuffer[position-1+length(MessageHeader)+2]) * 1<<16 +
-				longint(MessageBuffer[position-1+length(MessageHeader)+3]) * 1<<8+
-				longint(MessageBuffer[position-1+length(MessageHeader)+4])
-			);
+				longint( MessageBuffer[ position - 1 + length(MessageHeader) + 1 ] ) * 1<<24 +
+				longint( MessageBuffer[ position - 1 + length(MessageHeader) + 2 ] ) * 1<<16 +
+				longint( MessageBuffer[ position - 1 + length(MessageHeader) + 3 ] ) * 1<<8+
+				longint( MessageBuffer[ position - 1 + length(MessageHeader) + 4 ] )
+			);	// 数据包包体长度
 
 			
-		if length(MessageBuffer)>=position-1+length(MessageHeader)+4+len then begin
-			delete(MessageBuffer,1,position-1+length(MessageHeader)+4);
-			MSG:=copy(MessageBuffer,1,len);
-			delete(MessageBuffer,1,len);
+		if length(MessageBuffer) >= position - 1 + (length(MessageHeader) + 4) + len then begin	// 如果数据包完整
 
-			result:=true;
+			delete(MessageBuffer, 1, position - 1 + length(MessageHeader) + 4 ); // 删除数据包头部分
+			AMSG:=copy(MessageBuffer, 1, len); // 截取出数据包体
+			delete(MessageBuffer,1,len); // 删除数据包体部分
+
+			exit(true);
 		end;
 	end;
 
-	result := false;
+	exit(false)
 end;
 
-procedure TJustChatTerminal.OnMessageReceived(Var MSG : ansistring);
+procedure TJustChatTerminal.OnMessageReceived();
+var
+	MSG : ansistring;
+	S : TJsonData;
+
+	version,msgtype : int64;
 begin
-	/// TODO [紧急] 数据包解析
+	MSG := AMSG;
+	AMSG := '';
+
+	try
+
+		S := GetJSON(MSG);	
+
+		/// 判断数据包版本
+		version:=S.FindPath('version').asInt64;
+		if version < ServerPackVersion then begin
+			raise Exception.Create('Received a message made by a lower-version client.');
+		end
+		else if version > ServerPackVersion then begin
+			raise Exception.Create('Received a message made by a higher-version client.');
+		end;
+
+		/// 判断数据包类型
+		msgtype:=S.FindPath('type').asInt64;
+		case msgtype of
+			TMsgType_HEARTBEATS : begin
+				OnMessageHeartbeat(S);
+			end;
+			TMSGTYPE_REGISTRATION : begin
+				OnMessageRegistration(S);
+			end;
+			TMsgType_INFO : begin
+				OnMessageInfo(S);
+			end;
+			TMsgType_MESSAGE : begin
+				OnMessageChat(S);
+			end;
+			else begin
+				raise Exception.Create('Received a message with an unrecognized type.');
+			end;
+		end;
+
+
+		S.Free
+		
+	except
+		on e: Exception do begin
+			{$IFDEF CoolQSDK}
+			CQ_i_addLog(CQLOG_ERROR, 'Message Handler',
+				'Received an unrecognized message.' + CRLF +
+				e.message + CRLF +
+				Base64_Encryption(AMSG));
+			{$ELSE}
+			CQ_i_addLog(CQLOG_ERROR, 'Message Handler',
+				'Received an unrecognized message.' + CRLF +
+				e.message );
+			{$ENDIF}
+		end;
+	end;
+
+end;
+
+procedure TJustChatTerminal.OnMessageHeartbeat(S : TJsonData);
+begin
+	{$IFDEF CoolQSDK}
+	CQ_i_addLog(CQLOG_DEBUG,'Message Handler',format('[%s:%d] : Received a pulse echo.', [Connection.Socket.binding.peerIP, Connection.Socket.binding.PeerPort] ));
+	{$ENDIF}
+end;
+
+procedure TJustChatTerminal.OnMessageRegistration(S : TJsonData);
+var
+	MsgPack : TJustChatStructedMessage;
+begin
+	if Status <> Start then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid message.');
+	end;
+
+	if S.FindPath('identity').asInt64 <> REGISTRATION_MINECRAFT then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid identity.');
+	end;
+
+	ID := Base64_Decryption(S.FindPath('name').asString);
+	if (not IsGuid(ID)) then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid ID.');
+	end;
+
+
+	ConnectedTerminal := JustChat_Config.MinecraftTerminals.GetValue(ID);
+	if ConnectedTerminal = nil then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid message. ID not found in configuration.'); 
+	end;
+
+	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
+
+	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_online, S.AsJSON);
+	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
+	BroadCast(MsgPack);
+	MsgPack.Destroy();
+
+end;
+
+procedure TJustChatTerminal.OnMessageInfo(S : TJsonData);
+begin
+	/// TODO
+end;
+
+procedure TJustChatTerminal.OnMessageChat(S : TJsonData);
+begin
+	/// TODO
+end;
+
+procedure TJustChatTerminal.Broadcast(MSG : TJustChatStructedMessage);
+begin
+	ConnectedTerminal.Broadcast(MSG);
 end;
 
 end.
