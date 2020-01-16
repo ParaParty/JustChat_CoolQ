@@ -43,7 +43,7 @@
 			"Msg_INFO_Join": "[%SERVER%] %SENDER% joined the game.",
 			"Msg_INFO_Disconnect": "[%SERVER%] %SENDER% left the game.",
 			"Msg_INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
-			"Msg_Text_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
+			"Msg_Message_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
 			"Msg_Server_Playerlist": "[%SERVER%] There are %NOW%/%MAX% players online.",
 			"Event_online": "Server %NAME% is now online.",
 			"Event_offline": "Server %NAME% is now offline."

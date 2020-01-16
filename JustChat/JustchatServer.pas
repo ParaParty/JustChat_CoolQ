@@ -33,8 +33,11 @@ type TJustChatTerminal = class
 		procedure OnMessageChat(S : TJsonData);
 
 		function TextMessageContentUnpack(a:TJSONData):ansistring;
+		procedure ReplyAHeartbeat();
 
 	public
+		//hMutex	: handle;
+
 		Connection : TIdTCPConnection;
 		ID : ansistring;
 		status : TJustChatTerminalStatus;
@@ -186,6 +189,7 @@ begin
 
 	/// 如果本终端原本存在
 	if (Terminal <> nil) then begin
+		Terminal.ConnectedTerminal.Connection := nil;
 
 		if Terminal.Status = Confirmed then begin
 			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_offline , '{"version": '+NumToChar(ServerPackVersion)+'}');
@@ -197,6 +201,10 @@ begin
 		Terminal.ConnectedTerminal.name := '';
 		Terminal.Destroy();
 	end;
+
+	{$IFDEF CoolQSDK}
+	CQ_i_addLog(CQLOG_INFORECV, 'Server', format('A client %s:%d disconnected.', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]));
+	{$ENDIF}
 end;
 
 procedure TJustChatService.ServerOnExecute(AContext: TIdContext);
@@ -341,16 +349,10 @@ begin
 		
 	except
 		on e: Exception do begin
-			{$IFDEF CoolQSDK}
 			CQ_i_addLog(CQLOG_ERROR, 'Message Handler',
 				'Received an unrecognized message.' + CRLF +
 				e.message + CRLF +
-				Base64_Encryption(AMSG));
-			{$ELSE}
-			CQ_i_addLog(CQLOG_ERROR, 'Message Handler',
-				'Received an unrecognized message.' + CRLF +
-				e.message );
-			{$ENDIF}
+				Base64_Encryption(MSG));
 		end;
 	end;
 
@@ -361,7 +363,29 @@ begin
 	{$IFDEF CoolQSDK}
 	CQ_i_addLog(CQLOG_DEBUG,'Message Handler',format('[%s:%d] : Received a pulse echo.', [Connection.Socket.binding.peerIP, Connection.Socket.binding.PeerPort] ));
 	{$ENDIF}
+	ReplyAHeartbeat();
 end;
+
+procedure TJustChatTerminal.ReplyAHeartbeat();
+Var
+	P : ansistring;
+	len : longint;
+	S : TJsonObject;
+
+    TmpMsg : ansistring;
+begin
+	S := TJsonObject.Create();
+	S.add('version',ServerPackVersion);
+	S.add('type',TMsgType_HEARTBEATS);
+	TmpMsg := S.AsJSON;
+	S.free();
+
+	len:=length(TmpMsg);
+	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + TmpMsg;
+	
+    if Connection<>nil then Connection.Socket.Write(p);
+end;
+
 
 procedure TJustChatTerminal.OnMessageRegistration(S : TJsonData);
 var
@@ -377,10 +401,15 @@ begin
 		raise Exception.Create('Invalid identity.');
 	end;
 
-	ID := Base64_Decryption(S.FindPath('name').asString);
+	ID := S.FindPath('id').asString;
 	if (not IsGuid(ID)) then begin
-		Connection.Disconnect();
-		raise Exception.Create('Invalid ID.');
+
+		ID := Base64_Decryption(ID);
+		if (not IsGuid(ID)) then begin
+			Connection.Disconnect();
+			raise Exception.Create('Invalid ID.');
+		end;
+
 	end;
 
 
@@ -391,11 +420,14 @@ begin
 	end;
 
 	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
+	ConnectedTerminal.Connection := self.Connection;
+
 	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_online , S.AsJSON);
 	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
 	BroadCast(MsgPack);
 	MsgPack.Destroy();
 
+	Status := Confirmed;
 end;
 
 procedure TJustChatTerminal.OnMessageInfo(S : TJsonData);
@@ -525,6 +557,11 @@ var
 
 	sender,world_display,content : ansistring;
 begin
+	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid message.');
+	end;
+
 	sender := Base64_Decryption(S.FindPath('sender').asString);
 	world_display := Base64_Decryption(S.FindPath('world_display').asString);
 	content := TextMessageContentUnpack(S.FindPath('content'));

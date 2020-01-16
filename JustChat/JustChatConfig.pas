@@ -56,7 +56,7 @@ type
 
 /// 常量定义
 const
-	ServerPackVersion = 3;
+	ServerPackVersion = 4;
 
     TMsgType_HEARTBEATS = 0;
     TMSGTYPE_REGISTRATION = 1;
@@ -150,8 +150,9 @@ type TJustChatService_Terminal = class
         Config : TJustChatConfig_TerminalConfig;
         Service : TJustChatConfig_Services;
 
-        hMutex	: handle;
     public
+        //hMutex	: handle;
+
         constructor Create;
         destructor Destroy; override;
         //function GetID : int64; virtual;
@@ -180,9 +181,9 @@ end;
 type TJustChatService_MinecraftTerminal = class(TJustChatService_Terminal)
     private
         ID : ansistring;
-        Connection : TIdTCPConnection;
     public
         name : ansistring;
+        Connection : TIdTCPConnection;
 
         constructor Create(AID : ansistring; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
         destructor Destroy;override;
@@ -266,7 +267,7 @@ begin
     end
     else
     begin
-        s := 'ewoJInZlcnNpb24iOiB7CgkJImNvbmZpZyI6IDIKCX0sCgkiY29ubmVjdGlvbiI6IHsKCQkic2VydmVyIjogewoJCQkiZW5hYmxlIjogZmFsc2UsCgkJCSJwb3J0IjogMzg0NDAKCQl9LAoJCSJjbGllbnQiOiB7CgkJCSJlbmFibGUiOiBmYWxzZSwKCQkJImFkZHJlc3MiOiAiIiwKCQkJInBvcnQiOiAzODQ0MCwKCQkJInB1bHNlX2ludGVydmFsIjogMjAKCQl9LAoJCSJJRCI6ICIiLAoJCSJuYW1lIjogIiIKCX0sCgkic2VydmljZXMiOiBbCgkJewoJCQkiYmluZCI6IHsKCQkJCSJxcWdyb3VwcyI6IFsKCQkJCQkxMjM0NTY3ODkKCQkJCV0sCgkJCQkibWluZWNyYWZ0IjogWwoJCQkJCSJVVUlEMSIKCQkJCV0KCQkJfQoJCX0KCV0sCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7CgkJImV2ZW50cyI6IHsKCQkJIlJlZ2lzdHJhdGlvbl9BbGwiOiB0cnVlLAoJCQkiSW5mb19hbGwiOiB0cnVlLAoJCQkiSW5mb19OZXR3b3JrIjogdHJ1ZSwKCQkJIkluZm9fUGxheWVyRGVhdGgiOiB0cnVlLAoJCQkiSW5mb19vdGhlciI6IHRydWUsCgkJCSJNZXNzYWdlX0FsbCI6IHRydWUsCgkJCSJQbGF5ZXJMaXN0X0FsbCI6IHRydWUKCQl9LAoJCSJtZXNzYWdlX2Zvcm1hdCI6IHsKCQkJIk1zZ19JTkZPX0dlbmVyYWwiOiAiWyVTRVJWRVIlXSAlQ09OVEVOVCUiLAoJCQkiTXNnX0lORk9fSm9pbiI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGpvaW5lZCB0aGUgZ2FtZS4iLAoJCQkiTXNnX0lORk9fRGlzY29ubmVjdCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGxlZnQgdGhlIGdhbWUuIiwKCQkJIk1zZ19JTkZPX1BsYXllckRlYWQiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBkZWFkLiIsCgkJCSJNc2dfVGV4dF9PdmVydmlldyI6ICJbKl1bJVNFUlZFUiVdWyVXT1JMRF9ESVNQTEFZJV0lU0VOREVSJTogJUNPTlRFTlQlIiwKCQkJIk1zZ19TZXJ2ZXJfUGxheWVybGlzdCI6ICJbJVNFUlZFUiVdIFRoZXJlIGFyZSAlTk9XJS8lTUFYJSBwbGF5ZXJzIG9ubGluZS4iLAoJCQkiRXZlbnRfb25saW5lIjogIlNlcnZlciAlTkFNRSUgaXMgbm93IG9ubGluZS4iLAoJCQkiRXZlbnRfb2ZmbGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvZmZsaW5lLiIKCQl9Cgl9Cn0';
+        s := 'ew0KCSJ2ZXJzaW9uIjogew0KCQkiY29uZmlnIjogMg0KCX0sDQoJImNvbm5lY3Rpb24iOiB7DQoJCSJzZXJ2ZXIiOiB7DQoJCQkiZW5hYmxlIjogZmFsc2UsDQoJCQkicG9ydCI6IDM4NDQwDQoJCX0sDQoJCSJjbGllbnQiOiB7DQoJCQkiZW5hYmxlIjogZmFsc2UsDQoJCQkiYWRkcmVzcyI6ICIiLA0KCQkJInBvcnQiOiAzODQ0MCwNCgkJCSJwdWxzZV9pbnRlcnZhbCI6IDIwDQoJCX0sDQoJCSJJRCI6ICIiLA0KCQkibmFtZSI6ICIiDQoJfSwNCgkic2VydmljZXMiOiBbDQoJCXsNCgkJCSJiaW5kIjogew0KCQkJCSJxcWdyb3VwcyI6IFsNCgkJCQkJMTIzNDU2Nzg5DQoJCQkJXSwNCgkJCQkibWluZWNyYWZ0IjogWw0KCQkJCQkiVVVJRDEiDQoJCQkJXQ0KCQkJfQ0KCQl9DQoJXSwNCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7DQoJCSJldmVudHMiOiB7DQoJCQkiUmVnaXN0cmF0aW9uX0FsbCI6IHRydWUsDQoJCQkiSW5mb19hbGwiOiB0cnVlLA0KCQkJIkluZm9fTmV0d29yayI6IHRydWUsDQoJCQkiSW5mb19QbGF5ZXJEZWF0aCI6IHRydWUsDQoJCQkiSW5mb19vdGhlciI6IHRydWUsDQoJCQkiTWVzc2FnZV9BbGwiOiB0cnVlLA0KCQkJIlBsYXllckxpc3RfQWxsIjogdHJ1ZQ0KCQl9LA0KCQkibWVzc2FnZV9mb3JtYXQiOiB7DQoJCQkiTXNnX0lORk9fR2VuZXJhbCI6ICJbJVNFUlZFUiVdICVDT05URU5UJSIsDQoJCQkiTXNnX0lORk9fSm9pbiI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGpvaW5lZCB0aGUgZ2FtZS4iLA0KCQkJIk1zZ19JTkZPX0Rpc2Nvbm5lY3QiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBsZWZ0IHRoZSBnYW1lLiIsDQoJCQkiTXNnX0lORk9fUGxheWVyRGVhZCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGRlYWQuIiwNCgkJCSJNc2dfTWVzc2FnZV9PdmVydmlldyI6ICJbKl1bJVNFUlZFUiVdWyVXT1JMRF9ESVNQTEFZJV0lU0VOREVSJTogJUNPTlRFTlQlIiwNCgkJCSJNc2dfU2VydmVyX1BsYXllcmxpc3QiOiAiWyVTRVJWRVIlXSBUaGVyZSBhcmUgJU5PVyUvJU1BWCUgcGxheWVycyBvbmxpbmUuIiwNCgkJCSJFdmVudF9vbmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cgb25saW5lLiIsDQoJCQkiRXZlbnRfb2ZmbGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvZmZsaW5lLiINCgkJfQ0KCX0NCn0';
         assign(t, CQ_i_getAppDirectory+'config.json');rewrite(t);
         write(t, Base64_Decryption(s));
         close(t);
@@ -349,6 +350,7 @@ begin
             if Config.findPath('connection.server')<>nil then begin
                 T:=Config.findPath('connection.server');
                 if (T.findPath('enable')<>nil) and (T.findPath('enable').AsBoolean) then begin
+                    Justchat_Config.Connection.Server.Enable := true;
                     if (T.findPath('port')=nil) then begin
                         Config.Free;
                         raise Exception.Create('Server port must be specified.');
@@ -362,6 +364,7 @@ begin
             if Config.findPath('connection.client')<>nil then begin
                 T:=Config.findPath('connection.client');
                 if (T.findPath('enable')<>nil) and (T.findPath('enable').AsBoolean) then begin
+                    Justchat_Config.Connection.Client.Enable := true;
                     tmpObject := TJsonObject(Config.findPath('connection.client'));
                     
                     if tmpObject.findPath('address') = nil then begin
@@ -372,13 +375,13 @@ begin
                         raise Exception.Create('Server port in client mode configuration must be specified.');
                     end;
 
-                    if tmpObject.findPath('pulseInterval') = nil then begin
+                    if tmpObject.findPath('pulse_interval') = nil then begin
                         tmpObject.add('pulse_interval',20);
                     end;
 
                     Justchat_Config.Connection.Client.address := tmpObject.findPath('address').asString;
                     Justchat_Config.Connection.Client.port := tmpObject.findPath('port').asInt64;
-                    Justchat_Config.Connection.Client.pulseInterval := tmpObject.findPath('pulseInterval').asInt64;
+                    Justchat_Config.Connection.Client.pulseInterval := tmpObject.findPath('pulse_interval').asInt64;
 
                 end;
             end;
@@ -821,13 +824,13 @@ Var
 
     AMsg : ansistring;
 begin
-	WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
+	//WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
 
     AMsg := Msg.MinecraftFormatter;
 	len:=length(AMsg);
 	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + AMsg;
 	
-    Connection.Socket.Write(p);
+    if Connection<>nil then Connection.Socket.Write(p);
     exit(0);
 end;
 
