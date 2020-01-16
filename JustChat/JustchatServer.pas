@@ -179,7 +179,9 @@ var
 	Terminal : TJustChatTerminal;
 begin
 	/// 将本终端从终端列表中移除
-	Terminal := ConnectionsMap.GetValue(AContext.Connection);
+	Terminal := nil;
+	ConnectionsMap.TryGetValue(AContext.Connection, Terminal);
+
 	ConnectionsMap.Delete(AContext.Connection);
 
 	/// 如果本终端原本存在
@@ -201,7 +203,8 @@ procedure TJustChatService.ServerOnExecute(AContext: TIdContext);
 var
 	Terminal : TJustChatTerminal;
 begin
-	Terminal := ConnectionsMap.GetValue(AContext.Connection);
+	Terminal:=nil;
+	ConnectionsMap.TryGetValue(AContext.Connection, Terminal);
 	if Terminal = nil then begin
 		{$IFDEF CoolQSDK}
 		CQ_i_addLog(CQLOG_ERROR, 'Server', format('An invalid client %s:%d was detected.', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]));
@@ -381,7 +384,7 @@ begin
 	end;
 
 
-	ConnectedTerminal := JustChat_Config.MinecraftTerminals.GetValue(ID);
+	JustChat_Config.MinecraftTerminals.TryGetValue(ID, ConnectedTerminal);
 	if ConnectedTerminal = nil then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message. ID not found in configuration.'); 

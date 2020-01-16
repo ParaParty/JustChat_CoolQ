@@ -696,7 +696,8 @@ Var
     MsgPack : TJustChatStructedMessage;
 
 Begin
-    Terminal := JustChat_Config.QQGroupTerminals.GetValue(fromGroup);
+	Terminal := nil;
+    JustChat_Config.QQGroupTerminals.TryGetValue(fromGroup, Terminal);
     if Terminal = nil then exit(EVENT_IGNORE);
 
 	content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));

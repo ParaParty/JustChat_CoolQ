@@ -606,7 +606,8 @@ var
     tmp,cnt : TJsonData;
     i : longint;
 
-    t : TJustChatService_Terminal;
+    QQt : TJustChatService_QQGroupsTerminal;
+    MCt : TJustChatService_MinecraftTerminal;
 begin
     TerminalSet := TJustChatService_TerminalSet.Create();
 
@@ -646,16 +647,16 @@ begin
                 end else begin
                     /// 读入QQ群配置
 
-                    if JustChat_Config.QQGroupTerminals.GetValue(cnt.AsInt64) <> nil then begin
+                    if JustChat_Config.QQGroupTerminals.TryGetValue(cnt.AsInt64, QQt) then begin
                         /// 出现过
                         {$IFDEF CoolQSDK}
                         CQ_i_addLog(CQLOG_WARNING,'Configuration',format('A QQ Group [%d] was declared more than once.',[cnt.AsInt64]));
                         {$ENDIF}
                     end else begin
                         /// 未出现过
-                        t := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config, self);
-                        TerminalSet.Insert(t);
-                        JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, TJustChatService_QQGroupsTerminal(t));
+                        QQt := TJustChatService_QQGroupsTerminal.Create(cnt.AsInt64, config, self);
+                        TerminalSet.Insert(QQt);
+                        JustChat_Config.QQGroupTerminals.Insert(cnt.AsInt64, QQt);
                     end;
 
                 end;
@@ -686,16 +687,16 @@ begin
                 end else begin
                     /// 读入MC终端群配置
 
-                    if JustChat_Config.MinecraftTerminals.GetValue(cnt.AsString) <> nil then begin
+                    if JustChat_Config.MinecraftTerminals.TryGetValue(cnt.AsString, MCt) then begin
                         /// 出现过
                         {$IFDEF CoolQSDK}
                         CQ_i_addLog(CQLOG_WARNING,'Configuration',format('A Minecraft [%s] was declared more than once.',[cnt.AsString]));
                         {$ENDIF}
                     end else begin
                         /// 未出现过
-                        t := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config, self);
-                        TerminalSet.Insert(t);
-                        JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, TJustChatService_MinecraftTerminal(t));
+                        MCt := TJustChatService_MinecraftTerminal.Create(cnt.AsString, config, self);
+                        TerminalSet.Insert(MCt);
+                        JustChat_Config.MinecraftTerminals.Insert(cnt.AsString, MCt);
                     end;
 
                 end;
