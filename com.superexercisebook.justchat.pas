@@ -23,7 +23,7 @@ Uses
 	windows, math, dateutils, sysutils, Classes,
 	
 	Tools,
-    JustChatConfig, JustchatServer,
+    JustChatConfig, JustchatServer, JustChat_QQGroupHandler,
 
 	plugin_events, //插件事件处理单元
 	plugin_menu //插件菜单处理单元

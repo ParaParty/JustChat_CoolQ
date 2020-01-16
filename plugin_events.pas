@@ -5,7 +5,7 @@ interface
 uses
 	CoolQSDK, iconv,
 	sysutils, windows, classes,
-	JustchatConfig, JustchatServer;
+	JustChatConfig, JustChatServer, JustChat_QQGroupHandler;
 
 
 Function code_eventStartup:longint;
@@ -49,7 +49,10 @@ End;
 }
 Function code_eventExit:longint;
 Begin
-	if pluginEnabledEver then closeServer();
+	if pluginEnabledEver then begin
+		CloseService();
+		Final_ConfigFree();
+	end;
 {$IFDEF FPC}
 	exit(0);
 {$ELSE}
@@ -75,6 +78,7 @@ Begin
 	Init_Config();
 	Init_ConfigLayout();
 
+	StartService();
 
 {$IFDEF FPC}
 	exit(0)
@@ -125,22 +129,22 @@ Function code_eventGroupMsg(
 			fromgroup,fromQQ		:int64;
 			const fromAnonymous,msg	:ansistring;
 			font					:longint):longint;
-Var
+//Var
 	//AnonymousMes	:	CQ_Type_GroupAnonymous;
-	S	:	TStringlist;
-	command : ansistring;
+	//S	:	TStringlist;
+	//command : ansistring;
 Begin
 	if fromQQ=80000000 then exit(EVENT_IGNORE);
+
 	{if (fromQQ=80000000) and (fromAnonymous<>'') then begin
 		CQ_Tools_TextToAnonymous(fromAnonymous,AnonymousMes);
 		//将匿名用户信息存到 AnonymousMes
 	end;}
-	if Justchat_BindGroup<>fromGroup then exit(EVENT_IGNORE);
-	MSG_PackAndSend(subType,MsgID,fromGroup,fromQQ,fromAnonymous,msg,font);
 
+	JustChat_QQGroupHandler.code_eventGroupMsg(subType,MsgID,fromGroup,fromQQ,fromAnonymous,msg,font);
+
+	{
 	S					:= TStringlist.Create;
-	S.StrictDelimiter	:= True;
-	S.Delimiter			:= ' ';
 	S.DelimitedText		:= msg;
 
 	if (s.count>=1) then begin
@@ -157,7 +161,7 @@ Begin
 
 	S.Clear;
 	S.Free;
-
+	}
 		
 {$IFDEF FPC}
 	exit(EVENT_IGNORE);

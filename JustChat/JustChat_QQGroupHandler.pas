@@ -1,24 +1,20 @@
-unit Justchat;
-{$MODE DELPHI}
+unit JustChat_QQGroupHandler;
+{$MODE OBJFPC}
+
 interface
 uses
-    sysutils,classes,inifiles,
-    fpjson,jsonparser,RegExpr,
-    sockets,
-    CoolQSDK,
-	windows,
-    JustchatConfig,JustchatServer;
+    windows, classes, sysutils, inifiles,
+    fpjson, jsonparser,
 
-procedure onMessageReceived(aMSGPack:PMessagePack);
-Procedure onClientDisconnect(aClient:PClient);
-procedure MSG_PackAndSend(
-			subType,MsgID			:longint;
-			fromgroup,fromQQ		:int64;
-			fromAnonymous,msg	:ansistring;
-			font					:longint);
-function MSG_Register():ansistring;
-procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
-procedure MSG_PlayerList();
+    JustChatConfig,
+
+    Tools
+    {$IFDEF __FULL_COMPILE_}
+    ,CoolQSDK
+    {$ENDIF}
+    ;
+    
+function code_eventGroupMsg(subType, MsgID :longint; fromgroup, fromQQ :int64; const fromAnonymous, msg :ansistring; font :longint): longint;
 
 implementation
 type
@@ -26,198 +22,6 @@ type
 					url,md5,extension:ansistring;
 					width,height,size:int64;
 				end;
-
-function TextMessageContentUnpack(a:TJSONData):ansistring;
-Var
-	i:longint;
-Begin
-	result:='';
-	for i:=0 to a.count-1 do begin
-		if a.FindPath('['+NumToChar(i)+'].type').asString='text' then begin
-			result:=result+Base64_Decryption(a.FindPath('['+NumToChar(i)+'].content').asString);
-		end;
-	end;
-End;
-
-
-function MSG_Pulse_Packer():ansistring;
-Var
-	S:TJsonObject;
-Begin
-	S := TJsonObject.Create();
-	S.add('version',ServerPackVersion);
-	S.add('type',TMsgType_HEARTBEATS);
-	result:=S.AsJSON;
-	if S<>nil then S.Destroy;
-End;
-
-procedure onMessageReceived(aMSGPack:PMessagePack);
-Var
-    S:TJsonData;
-    version:int64;
-    msgtype:int64;
-
-    world_display,sender,content:AnsiString;
-	eventType:longint;
-
-	back:ansistring;
-	i,j:longint;
-begin
-	try
-	
-		try
-			if length(aMSGPack^.MSG)<=2 then begin
-				CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
-				exit();
-			end;
-			S:=GetJSON(aMSGPack^.MSG);
-			version:=S.FindPath('version').asInt64;
-			if version=ServerPackVersion then begin
-				msgtype:=S.FindPath('type').asInt64;
-
-				if msgtype=TMsgType_Message then begin
-					sender:=Base64_Decryption(S.FindPath('sender').asString);
-					world_display:=Base64_Decryption(S.FindPath('world_display').asString);
-					content:=TextMessageContentUnpack(S.FindPath('content'));
-					
-					//if pos('Text{',content)=1 then delete(content,1,5);
-					//if content[length(content)]='}' then delete(content,length(content),1);
-
-					//CQ_i_SendGroupMSG(Justchat_BindGroup,'[*]'+CQ_CharEncode(sender,false)+': '+CQ_CharEncode(content,false));
-					back:=MessageFormat.Msg_Text_Overview;
-					Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-					Message_Replace(back,'%WORLD_DISPLAY%',CQ_CharEncode(world_display,false));
-					Message_Replace(back,'%SENDER%',CQ_CharEncode(sender,false));
-					Message_Replace(back,'%CONTENT%',CQ_CharEncode(content,false));
-					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-
-				end
-				else
-				if msgtype=TMsgType_Info then begin
-					if EventSwitcher.Info_All then begin
-						if S.FindPath('event')<>nil then begin
-							eventType:=S.FindPath('event').asInt64;
-							if ((eventType in [TMsgType_INFO_Join,TMsgType_INFO_Disconnect]) and (EventSwitcher.Info_Network)) or
-							((eventType = TMsgType_INFO_PlayerDead) and (EventSwitcher.Info_PlayerDeath)) then begin
-
-								if S.FindPath('content')<>nil
-									then content:=Base64_Decryption(S.FindPath('content').AsString)
-									else content:='';
-
-								if content='' then begin
-									if S.FindPath('sender')<>nil then begin
-										eventType:=S.FindPath('event').asInt64;
-
-										if eventType=TMsgType_INFO_Join then back:=MessageFormat.Msg_INFO_Join else
-										if eventType=TMsgType_INFO_Disconnect then back:=MessageFormat.Msg_INFO_Disconnect else
-										if eventType=TMsgType_INFO_PlayerDead then back:=MessageFormat.Msg_INFO_PlayerDead;
-
-										Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-										sender:=Base64_Decryption(S.FindPath('sender').asString);
-										if pos('%SENDER%',back)>0
-											then Message_Replace(back,'%SENDER%',sender)
-											else Message_Replace(back,'%PLAYER%',sender);
-									end;
-								end
-								else
-								begin
-									back:=MessageFormat.Msg_INFO_General;
-									Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-									Message_Replace(back,'%CONTENT%',content);
-								end;
-
-								if back<>'' then CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-
-							end;
-						end
-						else
-						begin
-							if EventSwitcher.Info_Other then begin
-								if S.FindPath('content')<>nil
-									then content:=Base64_Decryption(S.FindPath('content').AsString)
-									else content:='';
-								if content<>'' then begin
-									back:=MessageFormat.Msg_INFO_General;
-									Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-									Message_Replace(back,'%CONTENT%',content);
-									CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-								end;
-							end;					
-						end;
-					end;
-				end
-				else
-				if (msgtype=TMsgType_HEARTBEATS) then begin
-					if upcase(ServerConfig.mode)='SERVER' then begin
-						Broadcast(MSG_Pulse_Packer,aMSGPack.Client);
-						CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Sent a pulse echo.');
-					end
-					else
-					begin
-						CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a pulse echo.');
-					end;
-				end
-				else
-				if (msgtype=TMSGTYPE_REGISTRATION) then begin
-					CQ_i_addLog(CQLOG_DEBUG,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a registration message.');
-					aMSGPack^.client^.info.name:=Base64_Decryption(S.FindPath('name').asString);
-					back:=MessageFormat.Event_online;
-					Message_Replace(back,'%NAME%',aMSGPack^.client^.info.name);
-					CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-				end
-				else
-				if (msgtype=TMSGTYPE_PLAYERLIST) and (S.FindPath('subtype').asInt64=TMSGTYPE_PLAYERLIST_Response) then begin
-					if EventSwitcher.playerList then  begin
-						back:=MessageFormat.Msg_Server_Playerlist;
-						Message_Replace(back,'%SERVER%',CQ_CharEncode(aMSGPack^.client^.info.name,false));
-						Message_Replace(back,'%NOW%',NumToChar(S.FindPath('count').asInt64));
-						Message_Replace(back,'%MAX%',NumToChar(S.FindPath('max').asInt64));
-						j:=S.FindPath('playerlist').count;
-						if j<>0 then back:=back+CRLF;
-						for i:=0 to j-1 do begin
-							back:=back+Base64_Decryption(S.FindPath('playerlist['+NumToChar(i)+']').asString);
-							if i<>j-1 then back:=back+', ';
-						end;
-						CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-					end;
-				end
-				else
-				begin
-					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message with an unrecognized type.');
-				end;
-			end
-			else
-			begin
-				if version<ServerPackVersion then begin
-					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a lower-version client.');
-				end
-				else
-				begin
-					CQ_i_addLog(CQLOG_WARNING,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received a message made by a higher-version client.');
-				end;
-			end;
-			if S<>nil then S.Destroy;
-		except
-			on e:Exception do begin
-				CQ_i_addLog(CQLOG_ERROR,'JustChat | onMessageReceived',NetAddrToStr(aMSGPack^.Client^.FromName.sin_addr)+':'+NumToChar(aMSGPack^.Client^.FromName.sin_port)+' : Received an unrecognized message.');
-				if S<>nil then S.Destroy;
-			end;
-   		end;
-
-	finally
-		ExitThread(0);
-		//TerminateThread(aMSGPack^.PID,0);
-	end;
-end;
-
-Procedure onClientDisconnect(aClient:PClient);
-Var
-	back	:ansistring;
-Begin
-	back := MessageFormat.Event_offline;
-	Message_Replace(back,'%NAME%',aClient^.info.name);
-	CQ_i_SendGroupMSG(Justchat_BindGroup,back);
-End;
 
 Function UTF8First_Remain(a:longint):longint;
 Begin
@@ -376,7 +180,7 @@ Begin
 	for i:=0 downto p.count-1 do begin
 		d:=p[i];
 		if i<>0 then s:=s+CRLF;
-		s:=d.k+' '+d.v;
+		s:=d^.k+' '+d^.v;
 	end;
 	CQ_i_addLog(CQLOG_DEBUG,'Params_Print',s);
 End;
@@ -880,66 +684,48 @@ Begin
 	end;
 End;
 
-
-procedure MSG_PackAndSend(
-			subType,MsgID			:longint;
-			fromgroup,fromQQ		:int64;
-			fromAnonymous,msg	:ansistring;
-			font					:longint);
+function code_eventGroupMsg(subType, MsgID :longint; fromgroup, fromQQ :int64; const fromAnonymous, msg :ansistring; font :longint): longint;
 Var
-	S:TJsonObject;
-    sender:ansistring;
-    content:TJsonArray;
+	S : TJsonObject;
+
+    world_display : ansistring;
+    sender : ansistring;
+    content : TJsonArray;
+
+    Terminal : TJustChatService_QQGroupsTerminal;
+    MsgPack : TJustChatStructedMessage;
+
 Begin
+    Terminal := JustChat_Config.QQGroupTerminals.GetValue(fromGroup);
+    if Terminal = nil then exit(EVENT_IGNORE);
+
 	content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
-	//CQ_i_addLog(CQLOG_DEBUG,'',content.AsJson);
 	if (content=nil) or (content.count=0) then begin
 		if content<>nil then content.Destroy;
 		exit();
 	end;
 
+    world_display := getGroupName(fromGroup);
+    sender := GetNick(fromGroup,fromQQ);
+
 	S := TJsonObject.Create();
 	S.add('version',ServerPackVersion);
 	S.add('type',TMsgType_Message);
-	sender:=Base64_Encryption(GetNick(fromGroup,fromQQ));
-	S.add('sender',sender);
-	S.add('world',NumToChar(fromGroup));
-	S.add('world_display',Base64_Encryption(getGroupName(fromGroup)));
+	S.add('sender',Base64_Encryption(sender));
+	S.add('world',Base64_Encryption(NumToChar(fromGroup)));
+	S.add('world_display',Base64_Encryption(world_display));
 	S.add('content',content);
-	Broadcast(S.AsJSON);
-	if S<>nil then S.Destroy;
-End;
 
-function MSG_Register():ansistring;
-Var
-	S:TJsonObject;
-Begin
-	S := TJsonObject.Create();
-	S.add('version',ServerPackVersion);
-	S.add('type',TMSGTYPE_REGISTRATION);
-	S.add('identity',1);
-	S.add('id',ServerConfig.ID);
-	S.add('name',Base64_Encryption(ServerConfig.ConsoleName));
-	result:=S.AsJSON;
-	if S<>nil then S.Destroy;
-End;
+	// Broadcast(S.AsJSON);
+    MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Msg_Message_Overview , S.AsJSON);
+	MsgPack.MessageReplacementsAdd('SERVER', 'QQ');
+	MsgPack.MessageReplacementsAdd('WORLD_DISPLAY', CQ_CharEncode(world_display,false));
+	MsgPack.MessageReplacementsAdd('SENDER', CQ_CharEncode(sender,false));
+	MsgPack.MessageReplacementsAdd('CONTENT', msg);
+	Terminal.BroadCast(MsgPack);
+	MsgPack.Destroy();
 
-procedure MSG_Pulse(hwnd, uMsg, eventID, dwTime:longword);stdcall;
-Begin
-	Broadcast(MSG_Pulse_Packer);
+	S.Destroy;
 End;
-
-procedure MSG_PlayerList();
-Var
-	S:TJsonObject;
-Begin
-	S := TJsonObject.Create();
-	S.add('version',ServerPackVersion);
-	S.add('type',TMSGTYPE_PLAYERLIST);
-	S.add('subtype',TMSGTYPE_PLAYERLIST_Request);
-	Broadcast(S.AsJSON);
-	if S<>nil then S.Destroy;
-End;
-
 
 end.
