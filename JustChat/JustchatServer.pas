@@ -21,9 +21,8 @@ uses
 procedure CloseService();
 procedure StartService();
 
-type TJustChatTerminalStatus = (Start, Confirmed);
-
 type TJustChatTerminal = class
+	type TJustChatTerminalStatus = (Start, Confirmed);
 	private
 		MessageBuffer	: ansistring;
 		AMSG			: ansistring;
@@ -32,6 +31,8 @@ type TJustChatTerminal = class
 		procedure OnMessageRegistration(S : TJsonData);
 		procedure OnMessageInfo(S : TJsonData);
 		procedure OnMessageChat(S : TJsonData);
+
+		function TextMessageContentUnpack(a:TJSONData):ansistring;
 
 	public
 		Connection : TIdTCPConnection;
@@ -173,12 +174,27 @@ end;
 
 procedure TJustChatService.ServerOnDisconnect(AContext: TIdContext);
 var
+	MsgPack : TJustChatStructedMessage;
+
 	Terminal : TJustChatTerminal;
 begin
-	/// TODO 删除在线状态
+	/// 将本终端从终端列表中移除
 	Terminal := ConnectionsMap.GetValue(AContext.Connection);
-	if (Terminal <> nil) then Terminal.Destroy();
 	ConnectionsMap.Delete(AContext.Connection);
+
+	/// 如果本终端原本存在
+	if (Terminal <> nil) then begin
+
+		if Terminal.Status = Confirmed then begin
+			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_offline , '{"version": '+NumToChar(ServerPackVersion)+'}');
+			MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
+			Terminal.BroadCast(MsgPack);
+			MsgPack.Destroy();
+		end;
+
+		Terminal.ConnectedTerminal.name := '';
+		Terminal.Destroy();
+	end;
 end;
 
 procedure TJustChatService.ServerOnExecute(AContext: TIdContext);
@@ -372,8 +388,7 @@ begin
 	end;
 
 	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
-
-	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_online, S.AsJSON);
+	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_online , S.AsJSON);
 	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
 	BroadCast(MsgPack);
 	MsgPack.Destroy();
@@ -381,13 +396,143 @@ begin
 end;
 
 procedure TJustChatTerminal.OnMessageInfo(S : TJsonData);
+var
+	eventType : int64;
+	MsgPack : TJustChatStructedMessage;
+
+	content, sender : ansistring;
 begin
-	/// TODO
+	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid message.');
+	end;
+
+	if S.FindPath('event')<>nil then begin
+		/// 定义事件
+		eventType:=S.FindPath('event').asInt64;
+
+		if ( eventType in [TMsgType_INFO_Join, TMsgType_INFO_Disconnect, TMsgType_INFO_PlayerDead] ) then begin
+			/// 已知类型
+			if S.FindPath('content')<>nil
+				then content:=Base64_Decryption(S.FindPath('content').AsString)
+				else content:='';
+
+			if content='' then begin
+				/// 数据包中不存在预设文本
+
+				if S.FindPath('sender')<>nil then begin
+
+					case eventType of
+						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_Join , S.AsJSON);
+						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_Disconnect , S.AsJSON);
+						TMsgType_INFO_PlayerDead :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerDeath, TJustChatStructedMessage.Msg_INFO_PlayerDead , S.AsJSON);
+						else raise Exception.Create('Internal error in Infomation Message Unpacker.');
+					end;
+
+					MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
+					sender:=Base64_Decryption(S.FindPath('sender').asString);
+					MsgPack.MessageReplacementsAdd('SENDER',sender);
+					MsgPack.MessageReplacementsAdd('PLAYER',sender);
+					BroadCast(MsgPack);
+					MsgPack.Destroy();
+
+
+				end else begin
+					/// 数据包中缺少必要信息
+
+					raise Exception.Create('Invalid message.');
+
+				end;
+
+			end
+			else
+			begin
+				/// 数据包中存在预设文本
+
+				if content<>'' then begin
+
+					case eventType of
+						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+						TMsgType_INFO_PlayerDead :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerDeath, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+						else raise Exception.Create('Internal error in Infomation Message Unpacker.');
+					end;
+
+					MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
+					MsgPack.MessageReplacementsAdd('CONTENT',content);
+					BroadCast(MsgPack);
+					MsgPack.Destroy();
+
+				end;
+
+			end;
+
+		end else begin
+			/// 未知类型
+
+			if S.FindPath('content')<>nil
+				then content:=Base64_Decryption(S.FindPath('content').AsString)
+				else content:='';
+
+			if content<>'' then begin
+				MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Other, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+				MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
+				MsgPack.MessageReplacementsAdd('CONTENT',content);
+				BroadCast(MsgPack);
+				MsgPack.Destroy();
+			end;
+
+		end;
+
+	end
+	else
+	begin
+		/// 一般事件
+
+		if S.FindPath('content')<>nil
+			then content:=Base64_Decryption(S.FindPath('content').AsString)
+			else content:='';
+
+		if content<>'' then begin
+			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Other, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+			MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
+			MsgPack.MessageReplacementsAdd('CONTENT',content);
+			BroadCast(MsgPack);
+			MsgPack.Destroy();
+		end;
+
+	end;
 end;
 
+function TJustChatTerminal.TextMessageContentUnpack(a:TJSONData):ansistring;
+Var
+	i:longint;
+Begin
+	result:='';
+	for i:=0 to a.count-1 do begin
+		if a.FindPath('['+NumToChar(i)+'].type').asString='text' then begin
+			result:=result+Base64_Decryption(a.FindPath('['+NumToChar(i)+'].content').asString);
+		end;
+	end;
+End;
+
 procedure TJustChatTerminal.OnMessageChat(S : TJsonData);
+var
+	MsgPack : TJustChatStructedMessage;
+
+	sender,world_display,content : ansistring;
 begin
-	/// TODO
+	sender := Base64_Decryption(S.FindPath('sender').asString);
+	world_display := Base64_Decryption(S.FindPath('world_display').asString);
+	content := TextMessageContentUnpack(S.FindPath('content'));
+	
+	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Msg_Message_Overview , S.AsJSON);
+	MsgPack.MessageReplacementsAdd('SERVER', ConnectedTerminal.name);
+	MsgPack.MessageReplacementsAdd('WORLD_DISPLAY', CQ_CharEncode(world_display,false));
+	MsgPack.MessageReplacementsAdd('SENDER', CQ_CharEncode(sender,false));
+	MsgPack.MessageReplacementsAdd('CONTENT', CQ_CharEncode(content,false));
+	BroadCast(MsgPack);
+	MsgPack.Destroy();
 end;
 
 procedure TJustChatTerminal.Broadcast(MSG : TJustChatStructedMessage);

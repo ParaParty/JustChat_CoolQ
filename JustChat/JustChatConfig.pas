@@ -112,28 +112,29 @@ type TJustChatStructedMessage = class
         Info_Network = 'Info_Network';
         Info_PlayerDeath = 'Info_PlayerDeath';
         Info_Other = 'Info_Other';
-        PlayerList = 'PlayerList';
+        Message_All = 'Message_All';
+        PlayerList_All = 'PlayerList_All';
 
         Msg_INFO_General = 'Msg_INFO_General';
         Msg_INFO_Join = 'Msg_INFO_Join';
         Msg_INFO_Disconnect = 'Msg_INFO_Disconnect';
         Msg_INFO_PlayerDead = 'Msg_INFO_PlayerDead';
-        Msg_Text_Overview = 'Msg_Text_Overview';
-        Msg_Server_Playerlist = 'Msg_Server_Playerlist';
+        Msg_Message_Overview = 'Msg_Message_Overview';
+        PlayerList_Layout = 'PlayerList_Layout';
         Event_online = 'Event_online';
         Event_offline = 'Event_offline';
     private
         structedMsg : ansistring;
         
         msgType : ansistring;
-        eventType : ansistring;
+        eventType,subEventType : ansistring;
 
         MessageReplacementsLength : longint;
         MessageReplacements : array of record
             k,v : ansistring;
         end;
     public
-        constructor Create(aMsgType, aEventType, aStructedMsg:ansistring);
+        constructor Create(aEventType, aSubEventType, aMsgType, aStructedMsg:ansistring);
         procedure MessageReplacementsAdd(k,v:ansistring);
         function QQGroupFormater(sFormat : TJustChatConfig_TerminalConfig) : ansistring;
         function MinecraftFormatter() : ansistring;
@@ -821,7 +822,7 @@ var
     msg : ansistring;
     i : longint;
 begin
-    if (sFormat.Event_isEnabled(eventType)) then begin
+    if (sFormat.Event_isEnabled(eventType)) and (sFormat.Event_isEnabled(subEventType)) then begin
         msg := sFormat.Message_Get(msgType);
         for i:=0 to messageReplacementsLength-1 do begin
             {$IFDEF CoolQSDK}
@@ -834,12 +835,13 @@ begin
     end;
 end;
 
-constructor TJustChatStructedMessage.Create(aMsgType, aEventType, aStructedMsg:ansistring);
+constructor TJustChatStructedMessage.Create(aEventType, aSubEventType, aMsgType, aStructedMsg:ansistring);
 begin
     messageReplacementsLength := 0;
 
-    msgType := aMsgType;
     eventType := aEventType;
+    subEventType := aSubEventType;
+    msgType := aMsgType;
     structedMsg := aStructedMsg;
 end;
 
