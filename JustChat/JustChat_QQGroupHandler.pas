@@ -684,6 +684,26 @@ Begin
 	end;
 End;
 
+procedure MSG_PlayerList(Terminal : TJustChatService_QQGroupsTerminal; fromGroup, fromQQ : int64);
+Var
+	S : TJsonObject;
+	world_display,sender : ansistring;
+Begin
+    world_display := getGroupName(fromGroup);
+    sender := GetNick(fromGroup,fromQQ);
+
+	S := TJsonObject.Create();
+	S.add('version',ServerPackVersion);
+	S.add('type',TMSGTYPE_PLAYERLIST);
+	S.add('subtype',TMSGTYPE_PLAYERLIST_Request);
+	S.add('sender',Base64_Encryption(sender));
+	S.add('world',Base64_Encryption(NumToChar(fromGroup)));
+	S.add('world_display',Base64_Encryption(world_display));
+	
+	Terminal.BroadCastToMCTerminal(S.AsJSON);
+	if S<>nil then S.Destroy;
+End;
+
 function code_eventGroupMsg(subType, MsgID :longint; fromgroup, fromQQ :int64; const fromAnonymous, msg :ansistring; font :longint): longint;
 Var
 	S : TJsonObject;
@@ -695,10 +715,41 @@ Var
     Terminal : TJustChatService_QQGroupsTerminal;
     MsgPack : TJustChatStructedMessage;
 
+
+	flag : boolean;
+	TS	:	TStringlist;
+	command : ansistring;
+
 Begin
 	Terminal := nil;
     JustChat_Config.QQGroupTerminals.TryGetValue(fromGroup, Terminal);
     if Terminal = nil then exit(EVENT_IGNORE);
+
+	/// 命令识别
+
+	flag := false;
+
+	TS					:= TStringlist.Create;
+	TS.DelimitedText		:= msg;
+
+	if (TS.count>=1) then begin
+		command := upcase(TS[0]);
+		if (length(command)>=3) and (command[1]+command[2]+command[3]=ansistring('！')) then command:='!'+copy(command,4,length(command));
+		if (length(command)>0) and ((command[1]='/') or (command[1]='!')) then begin
+			delete(command,1,1);
+				if Terminal.Event_isEnabled(TJustChatStructedMessage.PlayerList_All) then begin
+					MSG_PlayerList(Terminal, fromGroup, fromQQ);
+					flag := true;
+				end;
+		end;
+	end;
+
+	TS.Clear;
+	TS.Free;
+
+	if flag then exit(EVENT_IGNORE);
+
+	/// 消息广播
 
 	content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
 	if (content=nil) or (content.count=0) then begin

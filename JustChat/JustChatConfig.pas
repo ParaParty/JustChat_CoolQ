@@ -160,6 +160,10 @@ type TJustChatService_Terminal = class
         procedure InsertConfig(aConfig :TJsonData);
         function Send(MSG : TJustChatStructedMessage):longint; virtual;
         procedure Broadcast(MSG : TJustChatStructedMessage);
+        procedure BroadCastToMCTerminal(MSG : ansistring);
+
+        function Event_isEnabled(event : ansistring):boolean;
+        function InTheSameService(AnotherTerminal : TJustChatService_Terminal):boolean;
 end;
 
 {
@@ -189,6 +193,7 @@ type TJustChatService_MinecraftTerminal = class(TJustChatService_Terminal)
         destructor Destroy;override;
         function GetID : ansistring;
         function Send(MSG : TJustChatStructedMessage):longint; override;
+        function SendPlainMessage(AMsg : ansistring):longint;
 end;
 
 {
@@ -214,6 +219,7 @@ type TJustChatConfig_Services = class
     public
         constructor Create(Aconfig :TJsonData; inherit : TJustChatConfig_TerminalConfig);
         destructor Destroy;override;
+        function InTheSameService(a, b :TJustChatService_Terminal):boolean;
 end;
 
 type
@@ -267,7 +273,7 @@ begin
     end
     else
     begin
-        s := 'ew0KCSJ2ZXJzaW9uIjogew0KCQkiY29uZmlnIjogMg0KCX0sDQoJImNvbm5lY3Rpb24iOiB7DQoJCSJzZXJ2ZXIiOiB7DQoJCQkiZW5hYmxlIjogZmFsc2UsDQoJCQkicG9ydCI6IDM4NDQwDQoJCX0sDQoJCSJjbGllbnQiOiB7DQoJCQkiZW5hYmxlIjogZmFsc2UsDQoJCQkiYWRkcmVzcyI6ICIiLA0KCQkJInBvcnQiOiAzODQ0MCwNCgkJCSJwdWxzZV9pbnRlcnZhbCI6IDIwDQoJCX0sDQoJCSJJRCI6ICIiLA0KCQkibmFtZSI6ICIiDQoJfSwNCgkic2VydmljZXMiOiBbDQoJCXsNCgkJCSJiaW5kIjogew0KCQkJCSJxcWdyb3VwcyI6IFsNCgkJCQkJMTIzNDU2Nzg5DQoJCQkJXSwNCgkJCQkibWluZWNyYWZ0IjogWw0KCQkJCQkiVVVJRDEiDQoJCQkJXQ0KCQkJfQ0KCQl9DQoJXSwNCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7DQoJCSJldmVudHMiOiB7DQoJCQkiUmVnaXN0cmF0aW9uX0FsbCI6IHRydWUsDQoJCQkiSW5mb19hbGwiOiB0cnVlLA0KCQkJIkluZm9fTmV0d29yayI6IHRydWUsDQoJCQkiSW5mb19QbGF5ZXJEZWF0aCI6IHRydWUsDQoJCQkiSW5mb19vdGhlciI6IHRydWUsDQoJCQkiTWVzc2FnZV9BbGwiOiB0cnVlLA0KCQkJIlBsYXllckxpc3RfQWxsIjogdHJ1ZQ0KCQl9LA0KCQkibWVzc2FnZV9mb3JtYXQiOiB7DQoJCQkiTXNnX0lORk9fR2VuZXJhbCI6ICJbJVNFUlZFUiVdICVDT05URU5UJSIsDQoJCQkiTXNnX0lORk9fSm9pbiI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGpvaW5lZCB0aGUgZ2FtZS4iLA0KCQkJIk1zZ19JTkZPX0Rpc2Nvbm5lY3QiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBsZWZ0IHRoZSBnYW1lLiIsDQoJCQkiTXNnX0lORk9fUGxheWVyRGVhZCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGRlYWQuIiwNCgkJCSJNc2dfTWVzc2FnZV9PdmVydmlldyI6ICJbKl1bJVNFUlZFUiVdWyVXT1JMRF9ESVNQTEFZJV0lU0VOREVSJTogJUNPTlRFTlQlIiwNCgkJCSJNc2dfU2VydmVyX1BsYXllcmxpc3QiOiAiWyVTRVJWRVIlXSBUaGVyZSBhcmUgJU5PVyUvJU1BWCUgcGxheWVycyBvbmxpbmUuIiwNCgkJCSJFdmVudF9vbmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cgb25saW5lLiIsDQoJCQkiRXZlbnRfb2ZmbGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvZmZsaW5lLiINCgkJfQ0KCX0NCn0';
+        s := 'ewoJInZlcnNpb24iOiB7CgkJImNvbmZpZyI6IDIKCX0sCgkiY29ubmVjdGlvbiI6IHsKCQkic2VydmVyIjogewoJCQkiZW5hYmxlIjogZmFsc2UsCgkJCSJwb3J0IjogMzg0NDAKCQl9LAoJCSJjbGllbnQiOiB7CgkJCSJlbmFibGUiOiBmYWxzZSwKCQkJImFkZHJlc3MiOiAiIiwKCQkJInBvcnQiOiAzODQ0MCwKCQkJInB1bHNlX2ludGVydmFsIjogMjAKCQl9LAoJCSJJRCI6ICIiLAoJCSJuYW1lIjogIiIKCX0sCgkic2VydmljZXMiOiBbCgkJewoJCQkiYmluZCI6IHsKCQkJCSJxcWdyb3VwcyI6IFsKCQkJCQkxMjM0NTY3ODkKCQkJCV0sCgkJCQkibWluZWNyYWZ0IjogWwoJCQkJCSJVVUlEMSIKCQkJCV0KCQkJfQoJCX0KCV0sCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7CgkJImV2ZW50cyI6IHsKCQkJIlJlZ2lzdHJhdGlvbl9BbGwiOiB0cnVlLAoJCQkiSW5mb19hbGwiOiB0cnVlLAoJCQkiSW5mb19OZXR3b3JrIjogdHJ1ZSwKCQkJIkluZm9fUGxheWVyRGVhdGgiOiB0cnVlLAoJCQkiSW5mb19vdGhlciI6IHRydWUsCgkJCSJNZXNzYWdlX0FsbCI6IHRydWUsCgkJCSJQbGF5ZXJMaXN0X0FsbCI6IHRydWUKCQl9LAoJCSJtZXNzYWdlX2Zvcm1hdCI6IHsKCQkJIk1zZ19JTkZPX0dlbmVyYWwiOiAiWyVTRVJWRVIlXSAlQ09OVEVOVCUiLAoJCQkiTXNnX0lORk9fSm9pbiI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGpvaW5lZCB0aGUgZ2FtZS4iLAoJCQkiTXNnX0lORk9fRGlzY29ubmVjdCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGxlZnQgdGhlIGdhbWUuIiwKCQkJIk1zZ19JTkZPX1BsYXllckRlYWQiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBkZWFkLiIsCgkJCSJNc2dfTWVzc2FnZV9PdmVydmlldyI6ICJbKl1bJVNFUlZFUiVdWyVXT1JMRF9ESVNQTEFZJV0lU0VOREVSJTogJUNPTlRFTlQlIiwKCQkJIlBsYXllckxpc3RfTGF5b3V0IjogIlslU0VSVkVSJV0gVGhlcmUgYXJlICVOT1clLyVNQVglIHBsYXllcnMgb25saW5lLiVQTEFZRVJTX0xJU1QlIiwKCQkJIkV2ZW50X29ubGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvbmxpbmUuIiwKCQkJIkV2ZW50X29mZmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cgb2ZmbGluZS4iCgkJfQoJfQp9';
         assign(t, CQ_i_getAppDirectory+'config.json');rewrite(t);
         write(t, Base64_Decryption(s));
         close(t);
@@ -751,6 +757,12 @@ begin
     TerminalSet.Destroy();
 end;
 
+function TJustChatConfig_Services.InTheSameService(a ,b :TJustChatService_Terminal):boolean;
+
+begin
+    exit( (TerminalSet.Find(a) <> nil) and (TerminalSet.Find(b) <> nil) );
+end;
+
 class function TGenerallyLess.c(a,b:TObject):boolean;inline;
 begin
     if sizeof(pointer)=4 then
@@ -800,9 +812,31 @@ begin
     until not it.next;
 end;
 
+procedure TJustChatService_Terminal.BroadCastToMCTerminal(MSG : ansistring);
+var
+    it:TJustChatService_TerminalSet.TIterator;
+begin
+    it:=Service.TerminalSet.min;
+    repeat
+        if it.Data is TJustChatService_MinecraftTerminal then Begin
+            TJustChatService_MinecraftTerminal(it.Data).SendPlainMessage(MSG);
+        end;
+    until not it.next;
+end;
+
 procedure TJustChatService_Terminal.InsertConfig(aConfig : TJsonData);
 begin
     Config.InsertConfig(aConfig)
+end;
+
+function TJustChatService_Terminal.Event_isEnabled(event : ansistring):boolean;
+begin
+    exit(config.Event_isEnabled(event));
+end;
+
+function TJustChatService_Terminal.InTheSameService(AnotherTerminal : TJustChatService_Terminal):boolean;
+begin
+    exit( Service.InTheSameService(self, AnotherTerminal) );
 end;
 
 constructor TJustChatService_QQGroupsTerminal.Create(AID : int64; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
@@ -823,9 +857,16 @@ begin
 end;
 
 function TJustChatService_QQGroupsTerminal.Send(MSG : TJustChatStructedMessage):longint;
+var
+    s : ansistring;
 begin
+    s := msg.QQGroupFormater(config);
+
+    if s='' then exit(0);
+    if (pos('[CQ:show',s) <> 0) or (pos('[CQ:hb',s) <> 0) or (pos('[CQ:rich',s) <> 0) then exit(0);
+
     {$IFDEF CoolQSDK}
-    exit(CQ_i_SendGroupMSG( GetID(), msg.QQGroupFormater(config) ));
+    exit(CQ_i_SendGroupMSG( GetID(), s ));
     {$ELSE}
     exit(0);
     {$IFEND}
@@ -858,11 +899,23 @@ Var
     AMsg : ansistring;
 begin
 	//WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
-
     AMsg := Msg.MinecraftFormatter;
 	len:=length(AMsg);
+    if len = 0 then exit(0);
 	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + AMsg;
-	
+    if Connection<>nil then Connection.Socket.Write(p);
+    exit(0);
+end;
+
+function TJustChatService_MinecraftTerminal.SendPlainMessage(AMsg : ansistring):longint;
+Var
+	P : ansistring;
+	len : longint;
+begin
+	//WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
+	len:=length(AMsg);
+    if len = 0 then exit(0);
+	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + AMsg;
     if Connection<>nil then Connection.Socket.Write(p);
     exit(0);
 end;

@@ -31,6 +31,7 @@ type TJustChatTerminal = class
 		procedure OnMessageRegistration(S : TJsonData);
 		procedure OnMessageInfo(S : TJsonData);
 		procedure OnMessageChat(S : TJsonData);
+		procedure OnMessagePlayerList(S : TJsonData);
 
 		function TextMessageContentUnpack(a:TJSONData):ansistring;
 		procedure ReplyAHeartbeat();
@@ -206,7 +207,7 @@ begin
 		Terminal.ConnectedTerminal.Connection := nil;
 
 		if Terminal.Status = Confirmed then begin
-			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_offline , '{"version": '+NumToChar(ServerPackVersion)+'}');
+			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_offline , '');
 			MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
 			Terminal.BroadCast(MsgPack);
 			MsgPack.Destroy();
@@ -359,6 +360,9 @@ begin
 			end;
 			TMsgType_MESSAGE : begin
 				OnMessageChat(S);
+			end;
+			TMSGTYPE_PLAYERLIST : begin
+				OnMessagePlayerList(S);
 			end;
 			else begin
 				raise Exception.Create('Received a message with an unrecognized type.');
@@ -594,6 +598,79 @@ begin
 	MsgPack.MessageReplacementsAdd('CONTENT', CQ_CharEncode(content,false));
 	BroadCast(MsgPack);
 	MsgPack.Destroy();
+end;
+
+procedure TJustChatTerminal.OnMessagePlayerList(S : TJsonData);
+var
+	targetGroup : TJustChatService_QQGroupsTerminal;
+	MsgPack : TJustChatStructedMessage;
+
+	fromGroup : int64;
+	
+	ContentList : TJsonArray;
+	ContentCell : TJsonData;
+
+	PlayerNow, PlayerMax, i, j : longint;
+	PlayersListContent : ansistring;
+begin
+	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid message.');
+	end;
+
+	if s.FindPath('subtype') = nil then
+		raise Exception.Create('Invalid message.');
+	
+	if s.FindPath('subtype').asInt64 <> TMSGTYPE_PLAYERLIST_Response then
+		raise Exception.Create('Invalid message.');
+
+	if s.FindPath('world') = nil then
+		raise Exception.Create('Invalid message.');
+	
+	fromGroup := CharToNum(Base64_Decryption(s.FindPath('world').asString));
+	
+	if fromGroup = 0 then
+		raise Exception.Create('Invalid message.');
+	
+	targetGroup := nil;
+    JustChat_Config.QQGroupTerminals.TryGetValue(fromGroup, targetGroup);
+	if targetGroup = nil then
+		raise Exception.Create('Invalid message.');
+
+	if not targetGroup.inTheSameService(ConnectedTerminal) then
+		raise Exception.Create(format('Not in the same service with group %d.',[fromGroup]));
+
+	ContentList := TJsonArray(s.FindPath('player_list'));
+
+	if ContentList = nil then j := 0;
+	j := ContentList.Count;
+
+	if j = 0 then PlayersListContent := '' else PlayersListContent := CRLF;
+
+	if ContentList <> nil then begin
+
+		for i:=0 to j-1 do begin
+			ContentCell := ContentList[i];
+			if ContentCell.IsNull
+				then PlayersListContent := PlayersListContent + '???'
+				else PlayersListContent := PlayersListContent + Base64_Decryption(ContentCell.AsString);
+			if i<>j-1 then PlayersListContent:=PlayersListContent+', ';
+		end;
+	
+	end;
+
+
+	PlayerNow := S.FindPath('count').asInt64;
+	PlayerMax := S.FindPath('max').asInt64;
+
+	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.PlayerList_All, TJustChatStructedMessage.PlayerList_All, TJustChatStructedMessage.PlayerList_Layout , '');
+	MsgPack.MessageReplacementsAdd('SERVER', ConnectedTerminal.name);
+	MsgPack.MessageReplacementsAdd('NOW', NumToChar(PlayerNow));
+	MsgPack.MessageReplacementsAdd('MAX', NumToChar(PlayerMax));
+	MsgPack.MessageReplacementsAdd('PLAYERS_LIST', PlayersListContent);
+	targetGroup.Send(MsgPack);
+	MsgPack.Destroy();
+	
 end;
 
 procedure TJustChatTerminal.Broadcast(MSG : TJustChatStructedMessage);
