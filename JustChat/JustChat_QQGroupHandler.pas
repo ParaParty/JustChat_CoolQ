@@ -737,10 +737,10 @@ Begin
 		if (length(command)>=3) and (command[1]+command[2]+command[3]=ansistring('！')) then command:='!'+copy(command,4,length(command));
 		if (length(command)>0) and ((command[1]='/') or (command[1]='!')) then begin
 			delete(command,1,1);
-				if Terminal.Event_isEnabled(TJustChatStructedMessage.PlayerList_All) then begin
-					MSG_PlayerList(Terminal, fromGroup, fromQQ);
-					flag := true;
-				end;
+			if ((command='LS') or (command='LIST')) and Terminal.Event_isEnabled(TJustChatStructedMessage.PlayerList_All) then begin
+				MSG_PlayerList(Terminal, fromGroup, fromQQ);
+				flag := true;
+			end;
 		end;
 	end;
 
