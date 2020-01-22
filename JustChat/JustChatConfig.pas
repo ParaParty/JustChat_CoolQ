@@ -116,8 +116,8 @@ type TJustChatStructedMessage = class
         PlayerList_All = 'PlayerList_All';
 
         Msg_INFO_General = 'INFO_General';
-        Msg_INFO_Join = 'INFO_Join';
-        Msg_INFO_Disconnect = 'INFO_Disconnect';
+        Msg_INFO_Join = 'INFO_PlayerJoin';
+        Msg_INFO_Disconnect = 'INFO_PlayerDisconnect';
         Msg_INFO_PlayerDead = 'INFO_PlayerDead';
         Msg_Message_Overview = 'Message_Overview';
         PlayerList_Layout = 'PlayerList_Layout';
