@@ -32,21 +32,21 @@
 		"events": {
 			"Registration_All": true,
 			"Info_all": true,
-			"Info_Network": true,
+			"Info_PlayerNetwork": true,
 			"Info_PlayerDeath": true,
 			"Info_other": true,
 			"Message_All": true,
 			"PlayerList_All": true
 		},
 		"message_format": {
-			"Msg_INFO_General": "[%SERVER%] %CONTENT%",
-			"Msg_INFO_Join": "[%SERVER%] %SENDER% joined the game.",
-			"Msg_INFO_Disconnect": "[%SERVER%] %SENDER% left the game.",
-			"Msg_INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
-			"Msg_Message_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
+			"INFO_General": "[%SERVER%] %CONTENT%",
+			"INFO_PlayerJoin": "[%SERVER%] %SENDER% joined the game.",
+			"INFO_PlayerDisconnect": "[%SERVER%] %SENDER% left the game.",
+			"INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
+			"Message_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
 			"PlayerList_Layout": "[%SERVER%] There are %NOW%/%MAX% players online.%PLAYERS_LIST%",
-			"Event_online": "Server %NAME% is now online.",
-			"Event_offline": "Server %NAME% is now offline."
+			"Registration_online": "Server %NAME% is now online.",
+			"Registration_offline": "Server %NAME% is now offline."
 		}
 	}
 }

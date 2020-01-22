@@ -207,7 +207,7 @@ begin
 		Terminal.ConnectedTerminal.Connection := nil;
 
 		if Terminal.Status = Confirmed then begin
-			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_offline , '');
+			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_online , '');
 			MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
 			Terminal.BroadCast(MsgPack);
 			MsgPack.Destroy();
@@ -447,7 +447,7 @@ begin
 	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
 	ConnectedTerminal.Connection := self.Connection;
 
-	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Event_online , S.AsJSON);
+	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_online , S.AsJSON);
 	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
 	BroadCast(MsgPack);
 	MsgPack.Destroy();

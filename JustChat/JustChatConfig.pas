@@ -115,14 +115,14 @@ type TJustChatStructedMessage = class
         Message_All = 'Message_All';
         PlayerList_All = 'PlayerList_All';
 
-        Msg_INFO_General = 'Msg_INFO_General';
-        Msg_INFO_Join = 'Msg_INFO_Join';
-        Msg_INFO_Disconnect = 'Msg_INFO_Disconnect';
-        Msg_INFO_PlayerDead = 'Msg_INFO_PlayerDead';
-        Msg_Message_Overview = 'Msg_Message_Overview';
+        Msg_INFO_General = 'INFO_General';
+        Msg_INFO_Join = 'INFO_Join';
+        Msg_INFO_Disconnect = 'INFO_Disconnect';
+        Msg_INFO_PlayerDead = 'INFO_PlayerDead';
+        Msg_Message_Overview = 'Message_Overview';
         PlayerList_Layout = 'PlayerList_Layout';
-        Event_online = 'Event_online';
-        Event_offline = 'Event_offline';
+        Registration_online = 'Registration_online';
+        Registration_offline = 'Registration_offline';
     private
         structedMsg : ansistring;
         
@@ -273,7 +273,7 @@ begin
     end
     else
     begin
-        s := 'ewoJInZlcnNpb24iOiB7CgkJImNvbmZpZyI6IDIKCX0sCgkiY29ubmVjdGlvbiI6IHsKCQkic2VydmVyIjogewoJCQkiZW5hYmxlIjogZmFsc2UsCgkJCSJwb3J0IjogMzg0NDAKCQl9LAoJCSJjbGllbnQiOiB7CgkJCSJlbmFibGUiOiBmYWxzZSwKCQkJImFkZHJlc3MiOiAiIiwKCQkJInBvcnQiOiAzODQ0MCwKCQkJInB1bHNlX2ludGVydmFsIjogMjAKCQl9LAoJCSJJRCI6ICIiLAoJCSJuYW1lIjogIiIKCX0sCgkic2VydmljZXMiOiBbCgkJewoJCQkiYmluZCI6IHsKCQkJCSJxcWdyb3VwcyI6IFsKCQkJCQkxMjM0NTY3ODkKCQkJCV0sCgkJCQkibWluZWNyYWZ0IjogWwoJCQkJCSJVVUlEMSIKCQkJCV0KCQkJfQoJCX0KCV0sCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7CgkJImV2ZW50cyI6IHsKCQkJIlJlZ2lzdHJhdGlvbl9BbGwiOiB0cnVlLAoJCQkiSW5mb19hbGwiOiB0cnVlLAoJCQkiSW5mb19OZXR3b3JrIjogdHJ1ZSwKCQkJIkluZm9fUGxheWVyRGVhdGgiOiB0cnVlLAoJCQkiSW5mb19vdGhlciI6IHRydWUsCgkJCSJNZXNzYWdlX0FsbCI6IHRydWUsCgkJCSJQbGF5ZXJMaXN0X0FsbCI6IHRydWUKCQl9LAoJCSJtZXNzYWdlX2Zvcm1hdCI6IHsKCQkJIk1zZ19JTkZPX0dlbmVyYWwiOiAiWyVTRVJWRVIlXSAlQ09OVEVOVCUiLAoJCQkiTXNnX0lORk9fSm9pbiI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGpvaW5lZCB0aGUgZ2FtZS4iLAoJCQkiTXNnX0lORk9fRGlzY29ubmVjdCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGxlZnQgdGhlIGdhbWUuIiwKCQkJIk1zZ19JTkZPX1BsYXllckRlYWQiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBkZWFkLiIsCgkJCSJNc2dfTWVzc2FnZV9PdmVydmlldyI6ICJbKl1bJVNFUlZFUiVdWyVXT1JMRF9ESVNQTEFZJV0lU0VOREVSJTogJUNPTlRFTlQlIiwKCQkJIlBsYXllckxpc3RfTGF5b3V0IjogIlslU0VSVkVSJV0gVGhlcmUgYXJlICVOT1clLyVNQVglIHBsYXllcnMgb25saW5lLiVQTEFZRVJTX0xJU1QlIiwKCQkJIkV2ZW50X29ubGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvbmxpbmUuIiwKCQkJIkV2ZW50X29mZmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cgb2ZmbGluZS4iCgkJfQoJfQp9';
+        s := 'ewoJInZlcnNpb24iOiB7CgkJImNvbmZpZyI6IDIKCX0sCgkiY29ubmVjdGlvbiI6IHsKCQkic2VydmVyIjogewoJCQkiZW5hYmxlIjogZmFsc2UsCgkJCSJwb3J0IjogMzg0NDAKCQl9LAoJCSJjbGllbnQiOiB7CgkJCSJlbmFibGUiOiBmYWxzZSwKCQkJImFkZHJlc3MiOiAiIiwKCQkJInBvcnQiOiAzODQ0MCwKCQkJInB1bHNlX2ludGVydmFsIjogMjAKCQl9LAoJCSJJRCI6ICIiLAoJCSJuYW1lIjogIiIKCX0sCgkic2VydmljZXMiOiBbCgkJewoJCQkiYmluZCI6IHsKCQkJCSJxcWdyb3VwcyI6IFsKCQkJCQkxMjM0NTY3ODkKCQkJCV0sCgkJCQkibWluZWNyYWZ0IjogWwoJCQkJCSJVVUlEMSIKCQkJCV0KCQkJfQoJCX0KCV0sCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7CgkJImV2ZW50cyI6IHsKCQkJIlJlZ2lzdHJhdGlvbl9BbGwiOiB0cnVlLAoJCQkiSW5mb19hbGwiOiB0cnVlLAoJCQkiSW5mb19QbGF5ZXJOZXR3b3JrIjogdHJ1ZSwKCQkJIkluZm9fUGxheWVyRGVhdGgiOiB0cnVlLAoJCQkiSW5mb19vdGhlciI6IHRydWUsCgkJCSJNZXNzYWdlX0FsbCI6IHRydWUsCgkJCSJQbGF5ZXJMaXN0X0FsbCI6IHRydWUKCQl9LAoJCSJtZXNzYWdlX2Zvcm1hdCI6IHsKCQkJIklORk9fR2VuZXJhbCI6ICJbJVNFUlZFUiVdICVDT05URU5UJSIsCgkJCSJJTkZPX1BsYXllckpvaW4iOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBqb2luZWQgdGhlIGdhbWUuIiwKCQkJIklORk9fUGxheWVyRGlzY29ubmVjdCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGxlZnQgdGhlIGdhbWUuIiwKCQkJIklORk9fUGxheWVyRGVhZCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGRlYWQuIiwKCQkJIk1lc3NhZ2VfT3ZlcnZpZXciOiAiWypdWyVTRVJWRVIlXVslV09STERfRElTUExBWSVdJVNFTkRFUiU6ICVDT05URU5UJSIsCgkJCSJQbGF5ZXJMaXN0X0xheW91dCI6ICJbJVNFUlZFUiVdIFRoZXJlIGFyZSAlTk9XJS8lTUFYJSBwbGF5ZXJzIG9ubGluZS4lUExBWUVSU19MSVNUJSIsCgkJCSJSZWdpc3RyYXRpb25fb25saW5lIjogIlNlcnZlciAlTkFNRSUgaXMgbm93IG9ubGluZS4iLAoJCQkiUmVnaXN0cmF0aW9uX29mZmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cgb2ZmbGluZS4iCgkJfQoJfQp9';
         assign(t, CQ_i_getAppDirectory+'config.json');rewrite(t);
         write(t, Base64_Decryption(s));
         close(t);
