@@ -207,7 +207,7 @@ begin
 		Terminal.ConnectedTerminal.Connection := nil;
 
 		if Terminal.Status = Confirmed then begin
-			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_online , '');
+			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_offline , '');
 			MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
 			Terminal.BroadCast(MsgPack);
 			MsgPack.Destroy();
