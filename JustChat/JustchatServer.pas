@@ -651,9 +651,11 @@ begin
 
 		for i:=0 to j-1 do begin
 			ContentCell := ContentList[i];
-			if ContentCell.IsNull
-				then PlayersListContent := PlayersListContent + '???'
-				else PlayersListContent := PlayersListContent + Base64_Decryption(ContentCell.AsString);
+
+			if ContentCell.JSONType = jtString
+				then PlayersListContent := PlayersListContent + Base64_Decryption(ContentCell.AsString);
+				else PlayersListContent := PlayersListContent + '???'
+				
 			if i<>j-1 then PlayersListContent:=PlayersListContent+', ';
 		end;
 	
