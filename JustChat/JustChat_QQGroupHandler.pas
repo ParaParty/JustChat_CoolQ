@@ -452,7 +452,7 @@ Var
 	P		: TList;
 	aimage	: ImageInfo;
 	back, content	: ansistring;
-	msgdata : TJsonData;
+	msgdata,subdata : TJsonData;
 Begin
 	obj:=TJsonObject.Create;
 	if (s[1]='[') and (s[length(s)]=']') then begin
@@ -550,20 +550,48 @@ Begin
 
 				try
 					msgdata:=getjson(content);
-					if msgdata.getpath('detail_1') = nil then begin
+					if msgdata.FindPath('detail_1') <> nil then begin
+
+						back:=Params_Get(p,'title');
+						if (msgdata.FindPath('detail_1.desc') <> nil) and (msgdata.FindPath('detail_1.desc').JSONType = jtString) then
+							back:=back+' '+msgdata.FindPath('detail_1.desc').asString;
+						obj.add('text',Base64_Encryption(back));
+
+						back:='';
+						if (msgdata.FindPath('detail_1.qqdocurl') <> nil) and (msgdata.FindPath('detail_1.qqdocurl').JSONType = jtString) then
+							back:=msgdata.FindPath('detail_1.qqdocurl').asString;
+						obj.add('url',Base64_Encryption(back));
+
+					end else if (msgdata.FindPath('music') <> nil) or (msgdata.FindPath('news') <> nil) then begin
+						subdata:=msgdata.FindPath('music');
+						if subdata=nil then subdata:=msgdata.FindPath('news');
+
+						back:='';
+						if (subdata.FindPath('tag') <> nil) and (subdata.FindPath('tag').JSONType = jtString) then
+							back:=subdata.FindPath('tag').asString;
+						if back <> '' then back:='['+back+'] ';
+
+						if (subdata.FindPath('title') <> nil) and (subdata.FindPath('title').JSONType = jtString) then
+							back:=back+subdata.FindPath('title').asString;
+
+						if (subdata.FindPath('desc') <> nil) and (subdata.FindPath('desc').JSONType = jtString) then begin
+							if back = ''
+								then back:=back+subdata.FindPath('desc').asString
+								else back:=back+'-'+subdata.FindPath('desc').asString;
+						end;
+						obj.add('text',Base64_Encryption(back));
+
+						back:='';
+						if (subdata.FindPath('jumpUrl') <> nil) and (subdata.FindPath('jumpUrl').JSONType = jtString) then
+							back:=subdata.FindPath('jumpUrl').asString;
+						obj.add('url',Base64_Encryption(back));
+
+					end else begin
+
 						FreeAndNil(msgdata);
 						raise Exception.Create('');
+
 					end;
-
-					back:=Params_Get(p,'title');
-					if (msgdata.getpath('detail_1.desc') <> nil) and (msgdata.getpath('detail_1.desc').JSONType = jtString) then
-						back:=back+' '+msgdata.getpath('detail_1.desc').asString;
-					obj.add('text',Base64_Encryption(back));
-
-					back:='';
-					if (msgdata.getpath('detail_1.qqdocurl') <> nil) and (msgdata.getpath('detail_1.qqdocurl').JSONType = jtString) then
-						back:=msgdata.getpath('detail_1.qqdocurl').asString;
-					obj.add('url',Base64_Encryption(back));
 
 					FreeAndNil(msgdata);
 				except
