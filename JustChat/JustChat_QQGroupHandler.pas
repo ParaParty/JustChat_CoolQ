@@ -596,16 +596,22 @@ Begin
 					FreeAndNil(msgdata);
 				except
 					on e: Exception do begin
-						obj.add('url',Base64_Encryption(Params_Get(p,'url')));
-						back:=Params_Get(p,'text');
-						if back='' then back:=Params_Get(p,'brief');
-						obj.add('text',Base64_Encryption(back));
-						Params_Free(p);
+						back:=Params_Get(p,'url');
+						content:=Params_Get(p,'text');
+						if content='' then content:=Params_Get(p,'brief');
+
+						if content<>'' then begin
+							obj.add('url',Base64_Encryption(back));
+							obj.add('text',Base64_Encryption(content));
+						end else begin
+							obj.Destroy;
+							obj:=nil;
+						end;
 						//P.free;
 					end;
 				end;
 
-
+				Params_Free(p);
 
 			end
 			else
