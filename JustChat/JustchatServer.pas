@@ -653,8 +653,8 @@ begin
 			ContentCell := ContentList[i];
 
 			if ContentCell.JSONType = jtString
-				then PlayersListContent := PlayersListContent + Base64_Decryption(ContentCell.AsString);
-				else PlayersListContent := PlayersListContent + '???'
+				then PlayersListContent := PlayersListContent + Base64_Decryption(ContentCell.AsString)
+				else PlayersListContent := PlayersListContent + '???';
 				
 			if i<>j-1 then PlayersListContent:=PlayersListContent+', ';
 		end;

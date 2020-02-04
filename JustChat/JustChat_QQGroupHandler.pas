@@ -447,11 +447,12 @@ End;
 
 function StringToOBJ(fromGroup,fromQQ:int64;s:ansistring):TJsonObject;
 Var
-	obj		:TJsonObject;
-	func	:ansistring;
-	P		:TList;
-	aimage	:ImageInfo;
-	back	:ansistring;
+	obj		: TJsonObject;
+	func	: ansistring;
+	P		: TList;
+	aimage	: ImageInfo;
+	back, content	: ansistring;
+	msgdata : TJsonData;
 Begin
 	obj:=TJsonObject.Create;
 	if (s[1]='[') and (s[length(s)]=']') then begin
@@ -544,12 +545,40 @@ Begin
 		begin
 			p:=Params_Split(s);
 			if p<>nil then begin
-				obj.add('url',Base64_Encryption(Params_Get(p,'url')));
-				back:=Params_Get(p,'text');
-				if back='' then back:=Params_Get(p,'brief');
-				obj.add('text',Base64_Encryption(back));
-				Params_Free(p);
-				//P.free;
+
+				content := Params_Get(p,'content');
+
+				try
+					msgdata:=getjson(content);
+					if msgdata.getpath('detail_1') = nil then begin
+						FreeAndNil(msgdata);
+						raise Exception.Create('');
+					end;
+
+					back:=Params_Get(p,'title');
+					if (msgdata.getpath('detail_1.desc') <> nil) and (msgdata.getpath('detail_1.desc').JSONType = jtString) then
+						back:=back+' '+msgdata.getpath('detail_1.desc').asString;
+					obj.add('text',Base64_Encryption(back));
+
+					back:='';
+					if (msgdata.getpath('detail_1.qqdocurl') <> nil) and (msgdata.getpath('detail_1.qqdocurl').JSONType = jtString) then
+						back:=msgdata.getpath('detail_1.qqdocurl').asString;
+					obj.add('url',Base64_Encryption(back));
+
+					FreeAndNil(msgdata);
+				except
+					on e: Exception do begin
+						obj.add('url',Base64_Encryption(Params_Get(p,'url')));
+						back:=Params_Get(p,'text');
+						if back='' then back:=Params_Get(p,'brief');
+						obj.add('text',Base64_Encryption(back));
+						Params_Free(p);
+						//P.free;
+					end;
+				end;
+
+
+
 			end
 			else
 			begin
