@@ -197,15 +197,7 @@ Begin
 	exit(out);
 End;
 
-function getFaceExtension(id:longint):ansistring;
-Begin
-	case id of
-		47,66,75,203: result:='png';
-		else result:='gif'
-	end;
-End;
-
-function StringToOBJ(fromGroup,fromQQ:int64;s:ansistring):TJsonObject;
+function StringToOBJ(Terminal:TJustChatService_QQGroupsTerminal; fromGroup,fromQQ:int64; s:ansistring):TJsonObject;
 Var
 	obj		: TJsonObject;
 	func	: ansistring;
@@ -242,6 +234,11 @@ Begin
 		begin
 			p:=Params_Split(s);
 			if p<>nil then begin
+				content := Terminal.Message_Get(TJustChatStructedMessage.Msg_Message_ImageAlternative);
+				if content = '' then begin
+					content := '[IMAGE]';
+				end;
+
 				aimage:=GetImage(Params_Get(p,'file'));
 				obj.add('url',aimage.url);
 				obj.add('extension',aimage.extension);
@@ -249,7 +246,7 @@ Begin
 				obj.add('height',aimage.height);
 				obj.add('width',aimage.width);
 				obj.add('size',aimage.size);
-				obj.add('content',Base64_Encryption('[图片]'));
+				obj.add('content',Base64_Encryption(content));
 				Params_Free(p);
 				//P.free;
 			end
@@ -263,9 +260,16 @@ Begin
 		if (func='CQ:face') then
 		begin
 			p:=Params_Split(s);
-			obj.add('id',CharToNum(Params_Get(p,'id')));
-			obj.add('content',Base64_Encryption(getFaceContent(CharToNum(Params_Get(p,'id')))));
-			obj.add('extension',getFaceExtension(CharToNum(Params_Get(p,'id')))); 
+			if p<>nil then begin
+				obj.add('id',CharToNum(Params_Get(p,'id')));
+				obj.add('content',Base64_Encryption(getFaceContent(CharToNum(Params_Get(p,'id')))));
+				Params_Free(p);
+			end
+			else
+			begin
+				obj.Destroy;
+				obj:=nil;
+			end;
 		end
 		else
 		if (func='CQ:hb') then
@@ -396,7 +400,7 @@ Begin
 	exit(obj);
 End;
 	
-function MSG_StringToJSON(fromGroup,fromQQ:int64;s:ansistring):TJsonArray;
+function MSG_StringToJSON(Terminal:TJustChatService_QQGroupsTerminal;fromGroup,fromQQ:int64;s:ansistring):TJsonArray;
 Var
 	isScaning : boolean;
 	data	:	ansistring;
@@ -415,7 +419,7 @@ Begin
 			data:=data+s[i];
 			if s[i]=']' then begin
 				obj:=nil;
-				if data<>'' then obj:=StringToOBJ(fromGroup,fromQQ,data);
+				if data<>'' then obj:=StringToOBJ(Terminal,fromGroup,fromQQ,data);
 				if obj<>nil then back.add(obj);
 				isScaning:=false;
 				data:='';
@@ -428,7 +432,7 @@ Begin
 		begin
 			if s[i]='[' then begin
 				obj:=nil;
-				if data<>'' then obj:=StringToOBJ(fromGroup,fromQQ,data);
+				if data<>'' then obj:=StringToOBJ(Terminal,fromGroup,fromQQ,data);
 				if obj<>nil then back.add(obj);
 				isScaning:=true;
 				data:='[';
@@ -441,7 +445,7 @@ Begin
 	end;
 	obj:=nil;
 	if data<>'' then begin
-		obj:=StringToOBJ(fromGroup,fromQQ,data);
+		obj:=StringToOBJ(Terminal,fromGroup,fromQQ,data);
 		if obj<>nil then back.add(obj);
 	end;
 
@@ -574,7 +578,7 @@ Begin
 
 	/// 消息广播
 
-	content:=MSG_StringToJSON(fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
+	content:=MSG_StringToJSON(Terminal,fromGroup,fromQQ,MSG_EmojiConverter(fromGroup,fromQQ,MSG));
 	if (content=nil) or (content.count=0) then begin
 		if content<>nil then content.Destroy;
 		exit();

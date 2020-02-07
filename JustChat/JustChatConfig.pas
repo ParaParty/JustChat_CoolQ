@@ -121,6 +121,7 @@ type TJustChatStructedMessage = class
         Msg_INFO_Disconnect = 'INFO_PlayerDisconnect';
         Msg_INFO_PlayerDead = 'INFO_PlayerDead';
         Msg_Message_Overview = 'Message_Overview';
+        Msg_Message_ImageAlternative = 'Msg_Message_ImageAlternative';
         PlayerList_Layout = 'PlayerList_Layout';
         Registration_online = 'Registration_online';
         Registration_offline = 'Registration_offline';
@@ -165,6 +166,8 @@ type TJustChatService_Terminal = class
 
         function Event_isEnabled(event : ansistring):boolean;
         function InTheSameService(AnotherTerminal : TJustChatService_Terminal):boolean;
+
+        function Message_Get(key : ansistring):ansistring;
 end;
 
 {
@@ -279,30 +282,32 @@ function GenerateConfig_General():longint;
 begin
     exit(GenerateConfig(
         'config.json',
-        'ewoJInZlcnNpb24iOiB7CgkJImNvbmZpZyI6IDIKCX0sCgkiY29ubmVjdGlvbiI6'+
-        'IHsKCQkic2VydmVyIjogewoJCQkiZW5hYmxlIjogZmFsc2UsCgkJCSJwb3J0Ijog'+
-        'Mzg0NDAKCQl9LAoJCSJjbGllbnQiOiB7CgkJCSJlbmFibGUiOiBmYWxzZSwKCQkJ'+
-        'ImFkZHJlc3MiOiAiIiwKCQkJInBvcnQiOiAzODQ0MCwKCQkJInB1bHNlX2ludGVy'+
-        'dmFsIjogMjAKCQl9LAoJCSJJRCI6ICIiLAoJCSJuYW1lIjogIiIKCX0sCgkic2Vy'+
-        'dmljZXMiOiBbCgkJewoJCQkiYmluZCI6IHsKCQkJCSJxcWdyb3VwcyI6IFsKCQkJ'+
-        'CQkxMjM0NTY3ODkKCQkJCV0sCgkJCQkibWluZWNyYWZ0IjogWwoJCQkJCSJVVUlE'+
-        'MSIKCQkJCV0KCQkJfQoJCX0KCV0sCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7'+
-        'CgkJImV2ZW50cyI6IHsKCQkJIlJlZ2lzdHJhdGlvbl9BbGwiOiB0cnVlLAoJCQki'+
-        'SW5mb19hbGwiOiB0cnVlLAoJCQkiSW5mb19QbGF5ZXJOZXR3b3JrIjogdHJ1ZSwK'+
-        'CQkJIkluZm9fUGxheWVyRGVhdGgiOiB0cnVlLAoJCQkiSW5mb19vdGhlciI6IHRy'+
-        'dWUsCgkJCSJNZXNzYWdlX0FsbCI6IHRydWUsCgkJCSJQbGF5ZXJMaXN0X0FsbCI6'+
-        'IHRydWUKCQl9LAoJCSJtZXNzYWdlX2Zvcm1hdCI6IHsKCQkJIklORk9fR2VuZXJh'+
-        'bCI6ICJbJVNFUlZFUiVdICVDT05URU5UJSIsCgkJCSJJTkZPX1BsYXllckpvaW4i'+
-        'OiAiWyVTRVJWRVIlXSAlU0VOREVSJSBqb2luZWQgdGhlIGdhbWUuIiwKCQkJIklO'+
-        'Rk9fUGxheWVyRGlzY29ubmVjdCI6ICJbJVNFUlZFUiVdICVTRU5ERVIlIGxlZnQg'+
-        'dGhlIGdhbWUuIiwKCQkJIklORk9fUGxheWVyRGVhZCI6ICJbJVNFUlZFUiVdICVT'+
-        'RU5ERVIlIGRlYWQuIiwKCQkJIk1lc3NhZ2VfT3ZlcnZpZXciOiAiWypdWyVTRVJW'+
-        'RVIlXVslV09STERfRElTUExBWSVdJVNFTkRFUiU6ICVDT05URU5UJSIsCgkJCSJQ'+
-        'bGF5ZXJMaXN0X0xheW91dCI6ICJbJVNFUlZFUiVdIFRoZXJlIGFyZSAlTk9XJS8l'+
-        'TUFYJSBwbGF5ZXJzIG9ubGluZS4lUExBWUVSU19MSVNUJSIsCgkJCSJSZWdpc3Ry'+
-        'YXRpb25fb25saW5lIjogIlNlcnZlciAlTkFNRSUgaXMgbm93IG9ubGluZS4iLAoJ'+
-        'CQkiUmVnaXN0cmF0aW9uX29mZmxpbmUiOiAiU2VydmVyICVOQU1FJSBpcyBub3cg'+
-        'b2ZmbGluZS4iCgkJfQoJfQp9'
+        'ew0KCSJ2ZXJzaW9uIjogew0KCQkiY29uZmlnIjogMg0KCX0sDQoJImNvbm5lY3Rp'+
+        'b24iOiB7DQoJCSJzZXJ2ZXIiOiB7DQoJCQkiZW5hYmxlIjogZmFsc2UsDQoJCQki'+
+        'cG9ydCI6IDM4NDQwDQoJCX0sDQoJCSJjbGllbnQiOiB7DQoJCQkiZW5hYmxlIjog'+
+        'ZmFsc2UsDQoJCQkiYWRkcmVzcyI6ICIiLA0KCQkJInBvcnQiOiAzODQ0MCwNCgkJ'+
+        'CSJwdWxzZV9pbnRlcnZhbCI6IDIwDQoJCX0sDQoJCSJJRCI6ICIiLA0KCQkibmFt'+
+        'ZSI6ICIiDQoJfSwNCgkic2VydmljZXMiOiBbDQoJCXsNCgkJCSJiaW5kIjogew0K'+
+        'CQkJCSJxcWdyb3VwcyI6IFsNCgkJCQkJMTIzNDU2Nzg5DQoJCQkJXSwNCgkJCQki'+
+        'bWluZWNyYWZ0IjogWw0KCQkJCQkiVVVJRDEiDQoJCQkJXQ0KCQkJfQ0KCQl9DQoJ'+
+        'XSwNCgkiZ2xvYmFsX2NvbmZpZ3VyYXRpb24iOiB7DQoJCSJldmVudHMiOiB7DQoJ'+
+        'CQkiUmVnaXN0cmF0aW9uX0FsbCI6IHRydWUsDQoJCQkiSW5mb19hbGwiOiB0cnVl'+
+        'LA0KCQkJIkluZm9fUGxheWVyTmV0d29yayI6IHRydWUsDQoJCQkiSW5mb19QbGF5'+
+        'ZXJEZWF0aCI6IHRydWUsDQoJCQkiSW5mb19vdGhlciI6IHRydWUsDQoJCQkiTWVz'+
+        'c2FnZV9BbGwiOiB0cnVlLA0KCQkJIlBsYXllckxpc3RfQWxsIjogdHJ1ZQ0KCQl9'+
+        'LA0KCQkibWVzc2FnZV9mb3JtYXQiOiB7DQoJCQkiSU5GT19HZW5lcmFsIjogIlsl'+
+        'U0VSVkVSJV0gJUNPTlRFTlQlIiwNCgkJCSJJTkZPX1BsYXllckpvaW4iOiAiWyVT'+
+        'RVJWRVIlXSAlU0VOREVSJSBqb2luZWQgdGhlIGdhbWUuIiwNCgkJCSJJTkZPX1Bs'+
+        'YXllckRpc2Nvbm5lY3QiOiAiWyVTRVJWRVIlXSAlU0VOREVSJSBsZWZ0IHRoZSBn'+
+        'YW1lLiIsDQoJCQkiSU5GT19QbGF5ZXJEZWFkIjogIlslU0VSVkVSJV0gJVNFTkRF'+
+        'UiUgZGVhZC4iLA0KCQkJIk1lc3NhZ2VfT3ZlcnZpZXciOiAiWypdWyVTRVJWRVIl'+
+        'XVslV09STERfRElTUExBWSVdJVNFTkRFUiU6ICVDT05URU5UJSIsDQoJCQkiTXNn'+
+        'X01lc3NhZ2VfSW1hZ2VBbHRlcm5hdGl2ZSI6ICJbSU1BR0VdIiwNCgkJCSJQbGF5'+
+        'ZXJMaXN0X0xheW91dCI6ICJbJVNFUlZFUiVdIFRoZXJlIGFyZSAlTk9XJS8lTUFY'+
+        'JSBwbGF5ZXJzIG9ubGluZS4lUExBWUVSU19MSVNUJSIsDQoJCQkiUmVnaXN0cmF0'+
+        'aW9uX29ubGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBvbmxpbmUuIiwNCgkJ'+
+        'CSJSZWdpc3RyYXRpb25fb2ZmbGluZSI6ICJTZXJ2ZXIgJU5BTUUlIGlzIG5vdyBv'+
+        'ZmZsaW5lLiINCgkJfQ0KCX0NCn0='
     ));
 end;
 
@@ -626,12 +631,12 @@ begin
             Config:= Json_OpenFromFile(CQ_i_getAppDirectory+'cqface.json');
 
             /// 判断映射表是否存在
-            if (config.findPath('cqface.map')<>nil) and
-               (config.findPath('cqface.map').JSONType = jtObject) and
-               (config.findPath('cqface.map').Count > 0) then begin
+            if (config.findPath('cqface.alternative')<>nil) and
+               (config.findPath('cqface.alternative').JSONType = jtObject) and
+               (config.findPath('cqface.alternative').Count > 0) then begin
 
                 /// 读入映射表
-                enum:=Config.findPath('cqface.map').GetEnumerator;
+                enum:=Config.findPath('cqface.alternative').GetEnumerator;
                 while enum.MoveNext do begin
                     current := enum.GetCurrent();
 
@@ -668,7 +673,7 @@ begin
             SaveJson.add('cqface', SaveJsonCQFace);
             SaveJsonCQFace.add('prefix',JustChat_Config.CQFacePrefix);
             SaveJsonCQFace.add('default',JustChat_Config.CQFaceDefault);
-            SaveJsonCQFace.add('map',SaveJsonMap);
+            SaveJsonCQFace.add('alternative',SaveJsonMap);
 
             try
                 if (JustChat_Config.CQFace.Size > 0) then begin
@@ -1075,6 +1080,11 @@ end;
 function TJustChatService_Terminal.InTheSameService(AnotherTerminal : TJustChatService_Terminal):boolean;
 begin
     exit( Service.InTheSameService(self, AnotherTerminal) );
+end;
+
+function TJustChatService_Terminal.Message_Get(key : ansistring):ansistring;
+begin
+    exit(config.Message_Get(key));
 end;
 
 constructor TJustChatService_QQGroupsTerminal.Create(AID : int64; inherit : TJustChatConfig_TerminalConfig; parent : TJustChatConfig_Services);
