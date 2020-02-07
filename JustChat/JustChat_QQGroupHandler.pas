@@ -314,6 +314,7 @@ Begin
 
 				try
 					msgdata:=getjson(content);
+					
 					if msgdata.FindPath('detail_1') <> nil then begin
 
 						back:=Params_Get(p,'title');
@@ -348,6 +349,18 @@ Begin
 						back:='';
 						if (subdata.FindPath('jumpUrl') <> nil) and (subdata.FindPath('jumpUrl').JSONType = jtString) then
 							back:=subdata.FindPath('jumpUrl').asString;
+						obj.add('url',Base64_Encryption(back));
+					
+					end else if (msgdata.FindPath('albumData') <> nil) then begin
+					
+						back:=Params_Get(p,'title');
+						if (msgdata.FindPath('albumData.desc') <> nil) and (msgdata.FindPath('albumData.desc').JSONType = jtString) then
+							back:=back+' '+msgdata.FindPath('albumData.desc').asString;
+						obj.add('text',Base64_Encryption(back));
+
+						back:='';
+						if (msgdata.FindPath('albumData.h5Url') <> nil) and (msgdata.FindPath('albumData.h5Url').JSONType = jtString) then
+							back:=msgdata.FindPath('albumData.h5Url').asString;
 						obj.add('url',Base64_Encryption(back));
 
 					end else begin
