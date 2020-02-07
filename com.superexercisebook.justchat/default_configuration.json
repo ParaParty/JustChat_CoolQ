@@ -44,7 +44,7 @@
 			"INFO_PlayerDisconnect": "[%SERVER%] %SENDER% left the game.",
 			"INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
 			"Message_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
-			"Msg_Message_ImageAlternative": "[IMAGE]",
+			"Message_ImageAlternative": "[IMAGE]",
 			"PlayerList_Layout": "[%SERVER%] There are %NOW%/%MAX% players online.%PLAYERS_LIST%",
 			"Registration_online": "Server %NAME% is now online.",
 			"Registration_offline": "Server %NAME% is now offline."
