@@ -315,95 +315,95 @@ begin
     exit(GenerateConfig(
         'cqface.json',
         'ew0KCSJjcWZhY2UiOiB7DQoJCSJwcmVmaXgiOiAiLyIsDQoJCSJkZWZhdWx0Ijog'+
-        'IuihqOaDhSIsDQoJCSJtYXAiOiB7DQoJCQkiMCI6ICLmg4rorrYiLA0KCQkJIjEi'+
-        'OiAi5pKH5Zi0IiwNCgkJCSIyIjogIuiJsiIsDQoJCQkiMyI6ICLlj5HlkYYiLA0K'+
-        'CQkJIjQiOiAi5b6X5oSPIiwNCgkJCSI1IjogIua1geazqiIsDQoJCQkiNiI6ICLl'+
-        'rrPnvp4iLA0KCQkJIjciOiAi6Zet5Zi0IiwNCgkJCSI4IjogIuedoSIsDQoJCQki'+
-        'OSI6ICLlpKflk60iLA0KCQkJIjEwIjogIuWwtOWwrCIsDQoJCQkiMTEiOiAi5Y+R'+
-        '5oCSIiwNCgkJCSIxMiI6ICLosIPnmq4iLA0KCQkJIjEzIjogIuWRsueJmSIsDQoJ'+
-        'CQkiMTQiOiAi5b6u56yRIiwNCgkJCSIxNSI6ICLpmr7ov4ciLA0KCQkJIjE2Ijog'+
-        'IumFtyIsDQoJCQkiMTgiOiAi5oqT54uCIiwNCgkJCSIxOSI6ICLlkJAiLA0KCQkJ'+
-        'IjIwIjogIuWBt+eskSIsDQoJCQkiMjEiOiAi5Y+v54ixIiwNCgkJCSIyMiI6ICLn'+
-        'mb3nnLwiLA0KCQkJIjIzIjogIuWCsuaFoiIsDQoJCQkiMjQiOiAi6aWl6aW/IiwN'+
-        'CgkJCSIyNSI6ICLlm7AiLA0KCQkJIjI2IjogIuaDiuaBkCIsDQoJCQkiMjciOiAi'+
-        '5rWB5rGXIiwNCgkJCSIyOCI6ICLmhqjnrJEiLA0KCQkJIjI5IjogIuaCoOmXsiIs'+
-        'DQoJCQkiMzAiOiAi5aWL5paXIiwNCgkJCSIzMSI6ICLlkpLpqoIiLA0KCQkJIjMy'+
-        'IjogIueWkemXriIsDQoJCQkiMzMiOiAi5ZiYIiwNCgkJCSIzNCI6ICLmmZUiLA0K'+
-        'CQkJIjM1IjogIuaKmOejqCIsDQoJCQkiMzYiOiAi6KGwIiwNCgkJCSIzNyI6ICLp'+
-        'qrfpq4UiLA0KCQkJIjM4IjogIuaVsuaJkyIsDQoJCQkiMzkiOiAi5YaN6KeBIiwN'+
-        'CgkJCSI0MSI6ICLlj5HmipYiLA0KCQkJIjQyIjogIueIseaDhSIsDQoJCQkiNDMi'+
-        'OiAi6Lez6LezIiwNCgkJCSI0NiI6ICLnjKrlpLQiLA0KCQkJIjQ5IjogIuaLpeaK'+
-        'sSIsDQoJCQkiNTMiOiAi6JuL57OVIiwNCgkJCSI1NCI6ICLpl6rnlLUiLA0KCQkJ'+
-        'IjU1IjogIueCuOW8uSIsDQoJCQkiNTYiOiAi5YiAIiwNCgkJCSI1NyI6ICLotrPn'+
-        'kIMiLA0KCQkJIjU5IjogIuS+v+S+vyIsDQoJCQkiNjAiOiAi5ZKW5ZWhIiwNCgkJ'+
-        'CSI2MSI6ICLppa0iLA0KCQkJIjYzIjogIueOq+eRsCIsDQoJCQkiNjQiOiAi5YeL'+
-        '6LCiIiwNCgkJCSI2NiI6ICLniLHlv4MiLA0KCQkJIjY3IjogIuW/g+eijiIsDQoJ'+
-        'CQkiNjkiOiAi56S854mpIiwNCgkJCSI3NCI6ICLlpKrpmLMiLA0KCQkJIjc1Ijog'+
-        'IuaciOS6riIsDQoJCQkiNzYiOiAi6LWeIiwNCgkJCSI3NyI6ICLouKkiLA0KCQkJ'+
-        'Ijc4IjogIuaPoeaJiyIsDQoJCQkiNzkiOiAi6IOc5YipIiwNCgkJCSI4NSI6ICLp'+
-        'o57lkLsiLA0KCQkJIjg2IjogIuaAhOeBqyIsDQoJCQkiODkiOiAi6KW/55OcIiwN'+
-        'CgkJCSI5NiI6ICLlhrfmsZciLA0KCQkJIjk3IjogIuaTpuaxlyIsDQoJCQkiOTgi'+
-        'OiAi5oqg6by7IiwNCgkJCSI5OSI6ICLpvJPmjowiLA0KCQkJIjEwMCI6ICLns5fl'+
-        'pKfkuoYiLA0KCQkJIjEwMSI6ICLlnY/nrJEiLA0KCQkJIjEwMiI6ICLlt6blk7zl'+
-        'k7wiLA0KCQkJIjEwMyI6ICLlj7Plk7zlk7wiLA0KCQkJIjEwNCI6ICLlk4jmrKAi'+
-        'LA0KCQkJIjEwNSI6ICLphJnop4YiLA0KCQkJIjEwNiI6ICLlp5TlsYgiLA0KCQkJ'+
-        'IjEwNyI6ICLlv6vlk63kuoYiLA0KCQkJIjEwOCI6ICLpmLTpmakiLA0KCQkJIjEw'+
-        'OSI6ICLkurLkurIiLA0KCQkJIjExMCI6ICLlkJMiLA0KCQkJIjExMSI6ICLlj6/m'+
-        'gJwiLA0KCQkJIjExMiI6ICLoj5zliIAiLA0KCQkJIjExMyI6ICLllaTphZIiLA0K'+
-        'CQkJIjExNCI6ICLnr67nkIMiLA0KCQkJIjExNSI6ICLkuZLkuZMiLA0KCQkJIjEx'+
-        'NiI6ICLnpLrniLEiLA0KCQkJIjExNyI6ICLnk6LomasiLA0KCQkJIjExOCI6ICLm'+
-        'irHmi7MiLA0KCQkJIjExOSI6ICLli77lvJUiLA0KCQkJIjEyMCI6ICLmi7PlpLQi'+
-        'LA0KCQkJIjEyMSI6ICLlt67lirIiLA0KCQkJIjEyMiI6ICLniLHkvaAiLA0KCQkJ'+
-        'IjEyMyI6ICJOTyIsDQoJCQkiMTI0IjogIk9LIiwNCgkJCSIxMjUiOiAi6L2s5ZyI'+
-        'IiwNCgkJCSIxMjYiOiAi56OV5aS0IiwNCgkJCSIxMjciOiAi5Zue5aS0IiwNCgkJ'+
-        'CSIxMjgiOiAi6Lez57uzIiwNCgkJCSIxMjkiOiAi5oyl5omLIiwNCgkJCSIxMzAi'+
-        'OiAi5r+A5YqoIiwNCgkJCSIxMzEiOiAi6KGX6IieIiwNCgkJCSIxMzIiOiAi54yu'+
-        '5ZC7IiwNCgkJCSIxMzMiOiAi5bem5aSq5p6BIiwNCgkJCSIxMzQiOiAi5Y+z5aSq'+
-        '5p6BIiwNCgkJCSIxMzYiOiAi5Y+M5ZacIiwNCgkJCSIxMzciOiAi6Z6t54KuIiwN'+
-        'CgkJCSIxMzgiOiAi54Gv56y8IiwNCgkJCSIxMzkiOiAi5Y+R6LSiIiwNCgkJCSIx'+
-        'NDAiOiAiS+atjCIsDQoJCQkiMTQxIjogIui0reeJqSIsDQoJCQkiMTQyIjogIumC'+
-        'ruS7tiIsDQoJCQkiMTQzIjogIuW4hSIsDQoJCQkiMTQ0IjogIuWWneW9qSIsDQoJ'+
-        'CQkiMTQ1IjogIueliOeltyIsDQoJCQkiMTQ2IjogIueIhuetiyIsDQoJCQkiMTQ3'+
-        'IjogIuajkuajkuezliIsDQoJCQkiMTQ4IjogIuWWneWltiIsDQoJCQkiMTQ5Ijog'+
-        'IuS4i+mdoiIsDQoJCQkiMTUwIjogIummmeiViSIsDQoJCQkiMTUxIjogIumjnuac'+
-        'uiIsDQoJCQkiMTUyIjogIuW8gOi9piIsDQoJCQkiMTUzIjogIumrmOmTgeW3pui9'+
-        'puWktCIsDQoJCQkiMTU0IjogIui9puWOoiIsDQoJCQkiMTU1IjogIumrmOmTgeWP'+
-        's+i9puWktCIsDQoJCQkiMTU2IjogIuWkmuS6kSIsDQoJCQkiMTU3IjogIuS4i+mb'+
-        'qCIsDQoJCQkiMTU4IjogIumSnuelqCIsDQoJCQkiMTU5IjogIueGiueMqyIsDQoJ'+
-        'CQkiMTYwIjogIueBr+azoSIsDQoJCQkiMTYxIjogIumjjui9piIsDQoJCQkiMTYy'+
-        'IjogIumXuemSnyIsDQoJCQkiMTYzIjogIuaJk+S8niIsDQoJCQkiMTY0IjogIuW9'+
-        'qeeQgyIsDQoJCQkiMTY1IjogIumSu+aIkiIsDQoJCQkiMTY2IjogIuaymeWPkSIs'+
-        'DQoJCQkiMTY3IjogIue6uOW3viIsDQoJCQkiMTY4IjogIuiNryIsDQoJCQkiMTY5'+
-        'IjogIuaJi+aeqiIsDQoJCQkiMTcwIjogIumdkuibmSIsDQoJCQkiMTcxIjogIuiM'+
-        'tiIsDQoJCQkiMTcyIjogIuecqOecvOedmyIsDQoJCQkiMTczIjogIuazquWllCIs'+
-        'DQoJCQkiMTc0IjogIuaXoOWliCIsDQoJCQkiMTc1IjogIuWNluiQjCIsDQoJCQki'+
-        'MTc2IjogIuWwj+e6oOe7kyIsDQoJCQkiMTc3IjogIuWWt+ihgCIsDQoJCQkiMTc4'+
-        'IjogIuaWnOecvOeskSIsDQoJCQkiMTc5IjogImRvZ2UiLA0KCQkJIjE4MCI6ICLm'+
-        'g4rllpwiLA0KCQkJIjE4MSI6ICLpqprmibAiLA0KCQkJIjE4MiI6ICLnrJHlk60i'+
-        'LA0KCQkJIjE4MyI6ICLmiJHmnIDnvo4iLA0KCQkJIjE4NCI6ICLmsrPon7kiLA0K'+
-        'CQkJIjE4NSI6ICLnvorpqbwiLA0KCQkJIjE4NyI6ICLlub3ngbUiLA0KCQkJIjE4'+
-        'OCI6ICLom4siLA0KCQkJIjE5MCI6ICLoj4roirEiLA0KCQkJIjE5MiI6ICLnuqLl'+
-        'jIUiLA0KCQkJIjE5MyI6ICLlpKfnrJEiLA0KCQkJIjE5NCI6ICLkuI3lvIDlv4Mi'+
-        'LA0KCQkJIjE5NyI6ICLlhrfmvKAiLA0KCQkJIjE5OCI6ICLlkYMiLA0KCQkJIjE5'+
-        'OSI6ICLlpb3mo5IiLA0KCQkJIjIwMCI6ICLmi5zmiZgiLA0KCQkJIjIwMSI6ICLn'+
-        'grnotZ4iLA0KCQkJIjIwMiI6ICLml6DogYoiLA0KCQkJIjIwMyI6ICLmiZjohLgi'+
-        'LA0KCQkJIjIwNCI6ICLlkIMiLA0KCQkJIjIwNSI6ICLpgIHoirEiLA0KCQkJIjIw'+
-        'NiI6ICLlrrPmgJUiLA0KCQkJIjIwNyI6ICLoirHnl7QiLA0KCQkJIjIwOCI6ICLl'+
-        'sI/moLflhL8iLA0KCQkJIjIxMCI6ICLpo5nms6oiLA0KCQkJIjIxMSI6ICLmiJHk'+
-        'uI3nnIsiLA0KCQkJIjIxMiI6ICLmiZjoha4iLA0KCQkJIjIxNCI6ICLllbXllbUi'+
-        'LA0KCQkJIjIxNSI6ICLns4rohLgiLA0KCQkJIjIxNiI6ICLmi43lpLQiLA0KCQkJ'+
-        'IjIxNyI6ICLmia/kuIDmia8iLA0KCQkJIjIxOCI6ICLoiJTkuIDoiJQiLA0KCQkJ'+
-        'IjIxOSI6ICLoua3kuIDoua0iLA0KCQkJIjIyMCI6ICLmi73ngrjlpKkiLA0KCQkJ'+
-        'IjIyMSI6ICLpobblkbHlkbEiLA0KCQkJIjIyMiI6ICLmirHmirEiLA0KCQkJIjIy'+
-        'MyI6ICLmmrTlh7siLA0KCQkJIjIyNCI6ICLlvIDmnqoiLA0KCQkJIjIyNSI6ICLm'+
-        'kqnkuIDmkqkiLA0KCQkJIjIyNiI6ICLmi43moYwiLA0KCQkJIjIyNyI6ICLmi43m'+
-        'iYsiLA0KCQkJIjIyOCI6ICLmga3llpwiLA0KCQkJIjIyOSI6ICLlubLmna8iLA0K'+
-        'CQkJIjIzMCI6ICLlmLLorr0iLA0KCQkJIjIzMSI6ICLlk7wiLA0KCQkJIjIzMiI6'+
-        'ICLkvZvns7siLA0KCQkJIjIzMyI6ICLmjpDkuIDmjpAiLA0KCQkJIjIzNCI6ICLm'+
-        'g4rlkYYiLA0KCQkJIjIzNSI6ICLpoqTmipYiLA0KCQkJIjIzNiI6ICLllYPlpLQi'+
-        'LA0KCQkJIjIzNyI6ICLlgbfnnIsiLA0KCQkJIjIzOCI6ICLmiYfohLgiLA0KCQkJ'+
-        'IjIzOSI6ICLljp/osIUiLA0KCQkJIjI0MCI6ICLllrfohLgiLA0KCQkJIjI0MSI6'+
-        'ICLnlJ/ml6Xlv6vkuZAiDQoJCX0NCgl9DQp9'
+        'IuihqOaDhSIsDQoJCSJhbHRlcm5hdGl2ZSI6IHsNCgkJCSIwIjogIuaDiuiutiIs'+
+        'DQoJCQkiMSI6ICLmkoflmLQiLA0KCQkJIjIiOiAi6ImyIiwNCgkJCSIzIjogIuWP'+
+        'keWRhiIsDQoJCQkiNCI6ICLlvpfmhI8iLA0KCQkJIjUiOiAi5rWB5rOqIiwNCgkJ'+
+        'CSI2IjogIuWus+e+niIsDQoJCQkiNyI6ICLpl63lmLQiLA0KCQkJIjgiOiAi552h'+
+        'IiwNCgkJCSI5IjogIuWkp+WTrSIsDQoJCQkiMTAiOiAi5bC05bCsIiwNCgkJCSIx'+
+        'MSI6ICLlj5HmgJIiLA0KCQkJIjEyIjogIuiwg+eariIsDQoJCQkiMTMiOiAi5ZGy'+
+        '54mZIiwNCgkJCSIxNCI6ICLlvq7nrJEiLA0KCQkJIjE1IjogIumavui/hyIsDQoJ'+
+        'CQkiMTYiOiAi6YW3IiwNCgkJCSIxOCI6ICLmipPni4IiLA0KCQkJIjE5IjogIuWQ'+
+        'kCIsDQoJCQkiMjAiOiAi5YG356yRIiwNCgkJCSIyMSI6ICLlj6/niLEiLA0KCQkJ'+
+        'IjIyIjogIueZveecvCIsDQoJCQkiMjMiOiAi5YKy5oWiIiwNCgkJCSIyNCI6ICLp'+
+        'paXppb8iLA0KCQkJIjI1IjogIuWbsCIsDQoJCQkiMjYiOiAi5oOK5oGQIiwNCgkJ'+
+        'CSIyNyI6ICLmtYHmsZciLA0KCQkJIjI4IjogIuaGqOeskSIsDQoJCQkiMjkiOiAi'+
+        '5oKg6ZeyIiwNCgkJCSIzMCI6ICLlpYvmlpciLA0KCQkJIjMxIjogIuWSkumqgiIs'+
+        'DQoJCQkiMzIiOiAi55aR6ZeuIiwNCgkJCSIzMyI6ICLlmJgiLA0KCQkJIjM0Ijog'+
+        'IuaZlSIsDQoJCQkiMzUiOiAi5oqY56OoIiwNCgkJCSIzNiI6ICLoobAiLA0KCQkJ'+
+        'IjM3IjogIumqt+mrhSIsDQoJCQkiMzgiOiAi5pWy5omTIiwNCgkJCSIzOSI6ICLl'+
+        'ho3op4EiLA0KCQkJIjQxIjogIuWPkeaKliIsDQoJCQkiNDIiOiAi54ix5oOFIiwN'+
+        'CgkJCSI0MyI6ICLot7Pot7MiLA0KCQkJIjQ2IjogIueMquWktCIsDQoJCQkiNDki'+
+        'OiAi5oul5oqxIiwNCgkJCSI1MyI6ICLom4vns5UiLA0KCQkJIjU0IjogIumXqueU'+
+        'tSIsDQoJCQkiNTUiOiAi54K45by5IiwNCgkJCSI1NiI6ICLliIAiLA0KCQkJIjU3'+
+        'IjogIui2s+eQgyIsDQoJCQkiNTkiOiAi5L6/5L6/IiwNCgkJCSI2MCI6ICLlkpbl'+
+        'laEiLA0KCQkJIjYxIjogIumlrSIsDQoJCQkiNjMiOiAi546r55GwIiwNCgkJCSI2'+
+        'NCI6ICLlh4vosKIiLA0KCQkJIjY2IjogIueIseW/gyIsDQoJCQkiNjciOiAi5b+D'+
+        '56KOIiwNCgkJCSI2OSI6ICLnpLzniakiLA0KCQkJIjc0IjogIuWkqumYsyIsDQoJ'+
+        'CQkiNzUiOiAi5pyI5LquIiwNCgkJCSI3NiI6ICLotZ4iLA0KCQkJIjc3IjogIui4'+
+        'qSIsDQoJCQkiNzgiOiAi5o+h5omLIiwNCgkJCSI3OSI6ICLog5zliKkiLA0KCQkJ'+
+        'Ijg1IjogIumjnuWQuyIsDQoJCQkiODYiOiAi5oCE54GrIiwNCgkJCSI4OSI6ICLo'+
+        'pb/nk5wiLA0KCQkJIjk2IjogIuWGt+axlyIsDQoJCQkiOTciOiAi5pOm5rGXIiwN'+
+        'CgkJCSI5OCI6ICLmiqDpvLsiLA0KCQkJIjk5IjogIum8k+aOjCIsDQoJCQkiMTAw'+
+        'IjogIuezl+Wkp+S6hiIsDQoJCQkiMTAxIjogIuWdj+eskSIsDQoJCQkiMTAyIjog'+
+        'IuW3puWTvOWTvCIsDQoJCQkiMTAzIjogIuWPs+WTvOWTvCIsDQoJCQkiMTA0Ijog'+
+        'IuWTiOasoCIsDQoJCQkiMTA1IjogIumEmeinhiIsDQoJCQkiMTA2IjogIuWnlOWx'+
+        'iCIsDQoJCQkiMTA3IjogIuW/q+WTreS6hiIsDQoJCQkiMTA4IjogIumYtOmZqSIs'+
+        'DQoJCQkiMTA5IjogIuS6suS6siIsDQoJCQkiMTEwIjogIuWQkyIsDQoJCQkiMTEx'+
+        'IjogIuWPr+aAnCIsDQoJCQkiMTEyIjogIuiPnOWIgCIsDQoJCQkiMTEzIjogIuWV'+
+        'pOmFkiIsDQoJCQkiMTE0IjogIuevrueQgyIsDQoJCQkiMTE1IjogIuS5kuS5kyIs'+
+        'DQoJCQkiMTE2IjogIuekuueIsSIsDQoJCQkiMTE3IjogIueTouiZqyIsDQoJCQki'+
+        'MTE4IjogIuaKseaLsyIsDQoJCQkiMTE5IjogIuWLvuW8lSIsDQoJCQkiMTIwIjog'+
+        'IuaLs+WktCIsDQoJCQkiMTIxIjogIuW3ruWKsiIsDQoJCQkiMTIyIjogIueIseS9'+
+        'oCIsDQoJCQkiMTIzIjogIk5PIiwNCgkJCSIxMjQiOiAiT0siLA0KCQkJIjEyNSI6'+
+        'ICLovazlnIgiLA0KCQkJIjEyNiI6ICLno5XlpLQiLA0KCQkJIjEyNyI6ICLlm57l'+
+        'pLQiLA0KCQkJIjEyOCI6ICLot7Pnu7MiLA0KCQkJIjEyOSI6ICLmjKXmiYsiLA0K'+
+        'CQkJIjEzMCI6ICLmv4DliqgiLA0KCQkJIjEzMSI6ICLooZfoiJ4iLA0KCQkJIjEz'+
+        'MiI6ICLnjK7lkLsiLA0KCQkJIjEzMyI6ICLlt6blpKrmnoEiLA0KCQkJIjEzNCI6'+
+        'ICLlj7PlpKrmnoEiLA0KCQkJIjEzNiI6ICLlj4zllpwiLA0KCQkJIjEzNyI6ICLp'+
+        'nq3ngq4iLA0KCQkJIjEzOCI6ICLnga/nrLwiLA0KCQkJIjEzOSI6ICLlj5HotKIi'+
+        'LA0KCQkJIjE0MCI6ICJL5q2MIiwNCgkJCSIxNDEiOiAi6LSt54mpIiwNCgkJCSIx'+
+        'NDIiOiAi6YKu5Lu2IiwNCgkJCSIxNDMiOiAi5biFIiwNCgkJCSIxNDQiOiAi5Zad'+
+        '5b2pIiwNCgkJCSIxNDUiOiAi56WI56W3IiwNCgkJCSIxNDYiOiAi54iG562LIiwN'+
+        'CgkJCSIxNDciOiAi5qOS5qOS57OWIiwNCgkJCSIxNDgiOiAi5Zad5aW2IiwNCgkJ'+
+        'CSIxNDkiOiAi5LiL6Z2iIiwNCgkJCSIxNTAiOiAi6aaZ6JWJIiwNCgkJCSIxNTEi'+
+        'OiAi6aOe5py6IiwNCgkJCSIxNTIiOiAi5byA6L2mIiwNCgkJCSIxNTMiOiAi6auY'+
+        '6ZOB5bem6L2m5aS0IiwNCgkJCSIxNTQiOiAi6L2m5Y6iIiwNCgkJCSIxNTUiOiAi'+
+        '6auY6ZOB5Y+z6L2m5aS0IiwNCgkJCSIxNTYiOiAi5aSa5LqRIiwNCgkJCSIxNTci'+
+        'OiAi5LiL6ZuoIiwNCgkJCSIxNTgiOiAi6ZKe56WoIiwNCgkJCSIxNTkiOiAi54aK'+
+        '54yrIiwNCgkJCSIxNjAiOiAi54Gv5rOhIiwNCgkJCSIxNjEiOiAi6aOO6L2mIiwN'+
+        'CgkJCSIxNjIiOiAi6Ze56ZKfIiwNCgkJCSIxNjMiOiAi5omT5LyeIiwNCgkJCSIx'+
+        'NjQiOiAi5b2p55CDIiwNCgkJCSIxNjUiOiAi6ZK75oiSIiwNCgkJCSIxNjYiOiAi'+
+        '5rKZ5Y+RIiwNCgkJCSIxNjciOiAi57q45be+IiwNCgkJCSIxNjgiOiAi6I2vIiwN'+
+        'CgkJCSIxNjkiOiAi5omL5p6qIiwNCgkJCSIxNzAiOiAi6Z2S6JuZIiwNCgkJCSIx'+
+        'NzEiOiAi6Iy2IiwNCgkJCSIxNzIiOiAi55yo55y8552bIiwNCgkJCSIxNzMiOiAi'+
+        '5rOq5aWUIiwNCgkJCSIxNzQiOiAi5peg5aWIIiwNCgkJCSIxNzUiOiAi5Y2W6JCM'+
+        'IiwNCgkJCSIxNzYiOiAi5bCP57qg57uTIiwNCgkJCSIxNzciOiAi5Za36KGAIiwN'+
+        'CgkJCSIxNzgiOiAi5pac55y856yRIiwNCgkJCSIxNzkiOiAiZG9nZSIsDQoJCQki'+
+        'MTgwIjogIuaDiuWWnCIsDQoJCQkiMTgxIjogIumqmuaJsCIsDQoJCQkiMTgyIjog'+
+        'IueskeWTrSIsDQoJCQkiMTgzIjogIuaIkeacgOe+jiIsDQoJCQkiMTg0IjogIuay'+
+        's+ifuSIsDQoJCQkiMTg1IjogIue+iumpvCIsDQoJCQkiMTg3IjogIuW5veeBtSIs'+
+        'DQoJCQkiMTg4IjogIuibiyIsDQoJCQkiMTkwIjogIuiPiuiKsSIsDQoJCQkiMTky'+
+        'IjogIue6ouWMhSIsDQoJCQkiMTkzIjogIuWkp+eskSIsDQoJCQkiMTk0IjogIuS4'+
+        'jeW8gOW/gyIsDQoJCQkiMTk3IjogIuWGt+a8oCIsDQoJCQkiMTk4IjogIuWRgyIs'+
+        'DQoJCQkiMTk5IjogIuWlveajkiIsDQoJCQkiMjAwIjogIuaLnOaJmCIsDQoJCQki'+
+        'MjAxIjogIueCuei1niIsDQoJCQkiMjAyIjogIuaXoOiBiiIsDQoJCQkiMjAzIjog'+
+        'IuaJmOiEuCIsDQoJCQkiMjA0IjogIuWQgyIsDQoJCQkiMjA1IjogIumAgeiKsSIs'+
+        'DQoJCQkiMjA2IjogIuWus+aAlSIsDQoJCQkiMjA3IjogIuiKseeXtCIsDQoJCQki'+
+        'MjA4IjogIuWwj+agt+WEvyIsDQoJCQkiMjEwIjogIumjmeazqiIsDQoJCQkiMjEx'+
+        'IjogIuaIkeS4jeeciyIsDQoJCQkiMjEyIjogIuaJmOiFriIsDQoJCQkiMjE0Ijog'+
+        'IuWVteWVtSIsDQoJCQkiMjE1IjogIueziuiEuCIsDQoJCQkiMjE2IjogIuaLjeWk'+
+        'tCIsDQoJCQkiMjE3IjogIuaJr+S4gOaJryIsDQoJCQkiMjE4IjogIuiIlOS4gOiI'+
+        'lCIsDQoJCQkiMjE5IjogIui5reS4gOi5rSIsDQoJCQkiMjIwIjogIuaLveeCuOWk'+
+        'qSIsDQoJCQkiMjIxIjogIumhtuWRseWRsSIsDQoJCQkiMjIyIjogIuaKseaKsSIs'+
+        'DQoJCQkiMjIzIjogIuaatOWHuyIsDQoJCQkiMjI0IjogIuW8gOaeqiIsDQoJCQki'+
+        'MjI1IjogIuaSqeS4gOaSqSIsDQoJCQkiMjI2IjogIuaLjeahjCIsDQoJCQkiMjI3'+
+        'IjogIuaLjeaJiyIsDQoJCQkiMjI4IjogIuaBreWWnCIsDQoJCQkiMjI5IjogIuW5'+
+        'suadryIsDQoJCQkiMjMwIjogIuWYsuiuvSIsDQoJCQkiMjMxIjogIuWTvCIsDQoJ'+
+        'CQkiMjMyIjogIuS9m+ezuyIsDQoJCQkiMjMzIjogIuaOkOS4gOaOkCIsDQoJCQki'+
+        'MjM0IjogIuaDiuWRhiIsDQoJCQkiMjM1IjogIumipOaKliIsDQoJCQkiMjM2Ijog'+
+        'IuWVg+WktCIsDQoJCQkiMjM3IjogIuWBt+eciyIsDQoJCQkiMjM4IjogIuaJh+iE'+
+        'uCIsDQoJCQkiMjM5IjogIuWOn+iwhSIsDQoJCQkiMjQwIjogIuWWt+iEuCIsDQoJ'+
+        'CQkiMjQxIjogIueUn+aXpeW/q+S5kCINCgkJfQ0KCX0NCn0='
     ));
 end;
 
@@ -1046,24 +1046,28 @@ procedure TJustChatService_Terminal.Broadcast(MSG : TJustChatStructedMessage);
 var
     it:TJustChatService_TerminalSet.TIterator;
 begin
-    it:=Service.TerminalSet.min;
-    repeat
-        if it.Data <> self then Begin
-            it.Data.Send(MSG);
-        end;
-    until not it.next;
+    if (Service.TerminalSet.Size) > 0 then begin
+        it:=Service.TerminalSet.min;
+        repeat
+            if it.Data <> self then Begin
+                it.Data.Send(MSG);
+            end;
+        until not it.next;
+    end;
 end;
 
 procedure TJustChatService_Terminal.BroadCastToMCTerminal(MSG : ansistring);
 var
     it:TJustChatService_TerminalSet.TIterator;
 begin
-    it:=Service.TerminalSet.min;
-    repeat
-        if it.Data is TJustChatService_MinecraftTerminal then Begin
-            TJustChatService_MinecraftTerminal(it.Data).SendPlainMessage(MSG);
-        end;
-    until not it.next;
+    if (Service.TerminalSet.Size) > 0 then begin
+        it:=Service.TerminalSet.min;
+        repeat
+            if it.Data is TJustChatService_MinecraftTerminal then Begin
+                TJustChatService_MinecraftTerminal(it.Data).SendPlainMessage(MSG);
+            end;
+        until not it.next;
+    end;
 end;
 
 procedure TJustChatService_Terminal.InsertConfig(aConfig : TJsonData);
