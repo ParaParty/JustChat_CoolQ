@@ -10,8 +10,7 @@
 		"client": {
 			"enable": false,
 			"address": "",
-			"port": 38440,
-			"pulse_interval": 20
+			"port": 38440
 		},
 		"ID": "",
 		"name": ""

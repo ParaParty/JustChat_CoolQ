@@ -204,16 +204,20 @@ begin
 
 	/// 如果本终端原本存在
 	if (Terminal <> nil) then begin
-		Terminal.ConnectedTerminal.Connection := nil;
+	
+		if (Terminal.ConnectedTerminal <> nil) then begin
+			Terminal.ConnectedTerminal.Connection := nil;
 
-		if Terminal.Status = Confirmed then begin
-			MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_offline , '');
-			MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
-			Terminal.BroadCast(MsgPack);
-			MsgPack.Destroy();
+			if Terminal.Status = Confirmed then begin
+				MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_offline , '');
+				MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
+				Terminal.BroadCast(MsgPack);
+				MsgPack.Destroy();
+			end;
+
+			Terminal.ConnectedTerminal.name := '';
 		end;
 
-		Terminal.ConnectedTerminal.name := '';
 		Terminal.Destroy();
 	end;
 
