@@ -437,11 +437,15 @@ begin
 
 	end;
 
-
 	JustChat_Config.MinecraftTerminals.TryGetValue(ID, ConnectedTerminal);
 	if ConnectedTerminal = nil then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message. ID not found in configuration.'); 
+	end;
+
+	if (ConnectedTerminal.Connection <> nil) then begin
+		Connection.Disconnect();
+		raise Exception.Create('Invalid connection. A terminal tried to connect to this server more than once.');
 	end;
 
 	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
@@ -462,7 +466,7 @@ var
 
 	content, sender : ansistring;
 begin
-	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+	if (Status <> Confirmed) or (ConnectedTerminal.Connection <> self.Connection) then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message.');
 	end;
@@ -582,7 +586,7 @@ var
 
 	sender,world_display,content : ansistring;
 begin
-	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+	if (Status <> Confirmed) or (ConnectedTerminal.Connection <> self.Connection) then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message.');
 	end;
@@ -613,7 +617,7 @@ var
 	PlayerNow, PlayerMax, i, j : longint;
 	PlayersListContent : ansistring;
 begin
-	if (Status <> Confirmed) or (ConnectedTerminal = nil) then begin
+	if (Status <> Confirmed) or (ConnectedTerminal.Connection <> self.Connection) then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message.');
 	end;
