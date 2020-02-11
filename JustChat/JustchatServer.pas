@@ -215,7 +215,7 @@ begin
 				MsgPack.Destroy();
 			end;
 
-			Terminal.ConnectedTerminal.name := '';
+			// Terminal.ConnectedTerminal.name := '';
 		end;
 
 		Terminal.Destroy();
