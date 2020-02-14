@@ -1191,6 +1191,7 @@ begin
             Message_Replace(msg,'%'+upcase(messageReplacements[i].k)+'%',messageReplacements[i].v);
             {$IFEND}
         end;
+        while (length(msg) > 0) and ((msg[length(msg)] = CR) or (msg[length(msg)] = LF)) do delete(msg,length(msg),1);
         exit(msg);
     end else begin
         exit('');
