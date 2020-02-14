@@ -1,4 +1,5 @@
 {
+	"$schema": "https://github.com/ExerciseBook/JustChat/raw/V2/schema/config.json",
 	"version": {
 		"config": 2
 	},
@@ -22,7 +23,7 @@
 					123456789
 				],
 				"minecraft": [
-					"UUID1"
+					"01234567-89ab-cdef-0123-456789abcdef"
 				]
 			}
 		}
@@ -30,23 +31,23 @@
 	"global_configuration": {
 		"events": {
 			"Registration_All": true,
-			"Info_all": true,
+			"Info_All": true,
 			"Info_PlayerNetwork": true,
 			"Info_PlayerDeath": true,
-			"Info_other": true,
+			"Info_Other": true,
 			"Message_All": true,
 			"PlayerList_All": true
 		},
 		"message_format": {
-			"INFO_General": "[%SERVER%] %CONTENT%",
-			"INFO_PlayerJoin": "[%SERVER%] %SENDER% joined the game.",
-			"INFO_PlayerDisconnect": "[%SERVER%] %SENDER% left the game.",
-			"INFO_PlayerDead": "[%SERVER%] %SENDER% dead.",
+			"Info_General": "[%SERVER%] %CONTENT%",
+			"Info_PlayerJoin": "[%SERVER%] %SENDER% joined the game.",
+			"Info_PlayerDisconnect": "[%SERVER%] %SENDER% left the game.",
+			"Info_PlayerDead": "[%SERVER%] %SENDER% dead.",
 			"Message_Overview": "[*][%SERVER%][%WORLD_DISPLAY%]%SENDER%: %CONTENT%",
 			"Message_ImageAlternative": "[IMAGE]",
-			"PlayerList_Layout": "[%SERVER%] There are %NOW%/%MAX% players online.%PLAYERS_LIST%",
-			"Registration_online": "Server %NAME% is now online.",
-			"Registration_offline": "Server %NAME% is now offline."
+			"PlayerList_Layout": "[%SERVER%] There are %NOW%/%MAX% players online.\n%PLAYERS_LIST%",
+			"Registration_Online": "Server %SERVER% is now online.",
+			"Registration_Offline": "Server %SERVER% is now offline."
 		}
 	}
 }

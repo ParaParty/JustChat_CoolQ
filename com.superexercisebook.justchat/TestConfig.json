@@ -1,8 +1,9 @@
 {
+	"$schema": "https://github.com/ExerciseBook/JustChat/raw/V2/schema/config.json",
 	"version": {
 		"config": 2
 	},
-	"connections": {
+	"connection": {
 		"server" : {
 			"enable": true,
 			"port": 38440
@@ -54,7 +55,7 @@
 					"Msg_INFO_PlayerDead": "%SENDER% dead."
 				}
 			}
-        }
+        },
         {
             "groupid": 123456
         }

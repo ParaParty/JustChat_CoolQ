@@ -210,6 +210,7 @@ begin
 
 			if Terminal.Status = Confirmed then begin
 				MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_offline , '');
+				MsgPack.MessageReplacementsAdd('SERVER',Terminal.ConnectedTerminal.name);
 				MsgPack.MessageReplacementsAdd('NAME',Terminal.ConnectedTerminal.name);
 				Terminal.BroadCast(MsgPack);
 				MsgPack.Destroy();
@@ -456,6 +457,7 @@ begin
 	ConnectedTerminal.Connection := self.Connection;
 
 	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_online , S.AsJSON);
+	MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
 	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
 	BroadCast(MsgPack);
 	MsgPack.Destroy();
@@ -653,7 +655,8 @@ begin
 	if ContentList = nil then j := 0;
 	j := ContentList.Count;
 
-	if j = 0 then PlayersListContent := '' else PlayersListContent := CRLF;
+	// if j = 0 then PlayersListContent := '' else PlayersListContent := CRLF;
+	PlayersListContent := '';
 
 	if ContentList <> nil then begin
 
