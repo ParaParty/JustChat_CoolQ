@@ -493,8 +493,8 @@ begin
 				if S.FindPath('sender')<>nil then begin
 
 					case eventType of
-						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_Join , S.AsJSON);
-						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_Disconnect , S.AsJSON);
+						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerNetwork, TJustChatStructedMessage.Msg_INFO_Join , S.AsJSON);
+						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerNetwork, TJustChatStructedMessage.Msg_INFO_Disconnect , S.AsJSON);
 						TMsgType_INFO_PlayerDead :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerDeath, TJustChatStructedMessage.Msg_INFO_PlayerDead , S.AsJSON);
 						else raise Exception.Create('Internal error in Infomation Message Unpacker.');
 					end;
@@ -522,8 +522,8 @@ begin
 				if content<>'' then begin
 
 					case eventType of
-						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
-						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_Network, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+						TMsgType_INFO_Join : MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerNetwork, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
+						TMsgType_INFO_Disconnect :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerNetwork, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
 						TMsgType_INFO_PlayerDead :  MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Info_All, TJustChatStructedMessage.Info_PlayerDeath, TJustChatStructedMessage.Msg_INFO_General , S.AsJSON);
 						else raise Exception.Create('Internal error in Infomation Message Unpacker.');
 					end;

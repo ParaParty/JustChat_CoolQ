@@ -110,7 +110,7 @@ type TJustChatStructedMessage = class
     const
         Registration_All = 'Registration_All';
         Info_All = 'Info_All';
-        Info_Network = 'Info_Network';
+        Info_PlayerNetwork = 'Info_PlayerNetwork';
         Info_PlayerDeath = 'Info_PlayerDeath';
         Info_Other = 'Info_Other';
         Message_All = 'Message_All';
