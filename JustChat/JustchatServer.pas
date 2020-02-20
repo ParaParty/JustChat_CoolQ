@@ -146,7 +146,8 @@ begin
     end;
 	ConnectionsMap.Destroy();
 
-	JustChatServer.Active := false;
+	if (JustChatServer <> nil) then
+		JustChatServer.Active := false;
 end;
 
 procedure TJustChatService.ClientStart();
