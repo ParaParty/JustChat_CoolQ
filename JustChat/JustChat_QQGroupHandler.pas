@@ -482,6 +482,7 @@ Begin
 		if isScaningEmoji then begin
 			if s[i]=']' then begin
 				delete(s,i,1);
+				if emojiID > 10000000 then emojiID := emojiID - 10000000;
 				emojiData:=OctToUTF8(emojiID);
 				s:=copy(s,1,i-1)+emojiData+Copy(s,i,length(s));
 				i:=i+length(emojiData)-1;
