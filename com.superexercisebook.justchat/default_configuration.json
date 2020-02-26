@@ -1,5 +1,5 @@
 {
-	"$schema": "https://github.com/ExerciseBook/JustChat/raw/V2/schema/config.json",
+	"$schema": "https://exercisebook.github.io/JustChat/json-schema/v2/config.json",
 	"version": {
 		"config": 2
 	},

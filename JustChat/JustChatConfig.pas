@@ -282,8 +282,8 @@ function GenerateConfig_General():longint;
 begin
     exit(GenerateConfig(
         'config.json',
-        'ew0KCSIkc2NoZW1hIjogImh0dHBzOi8vZ2l0aHViLmNvbS9FeGVyY2lzZUJvb2sv'+
-        'SnVzdENoYXQvcmF3L1YyL3NjaGVtYS9jb25maWcuanNvbiIsDQoJInZlcnNpb24i'+
+        'ew0KCSIkc2NoZW1hIjogImh0dHBzOi8vZXhlcmNpc2Vib29rLmdpdGh1Yi5pby9K'+
+        'dXN0Q2hhdC9qc29uLXNjaGVtYS92Mi9jb25maWcuanNvbiIsDQoJInZlcnNpb24i'+
         'OiB7DQoJCSJjb25maWciOiAyDQoJfSwNCgkiY29ubmVjdGlvbiI6IHsNCgkJInNl'+
         'cnZlciI6IHsNCgkJCSJlbmFibGUiOiBmYWxzZSwNCgkJCSJwb3J0IjogMzg0NDAN'+
         'CgkJfSwNCgkJImNsaWVudCI6IHsNCgkJCSJlbmFibGUiOiBmYWxzZSwNCgkJCSJh'+
