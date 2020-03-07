@@ -901,33 +901,33 @@ begin
 
     Config := TJustChatConfig_TerminalConfig.CreateFromConfig(Aconfig, inherit);
 
-    if Aconfig.getPath('bind')=nil then begin
+    if Aconfig.findPath('bind')=nil then begin
         {$IFDEF CoolQSDK}
         CQ_i_addLog(CQLOG_WARNING,'Configuration','A empty service was detected.'+CRLF+Aconfig.FormatJson());
         {$ENDIF}
-    end else if Aconfig.getPath('bind').JSONType <> jtObject then begin
+    end else if Aconfig.findPath('bind').JSONType <> jtObject then begin
         {$IFDEF CoolQSDK}
         CQ_i_addLog(CQLOG_WARNING,'Configuration','A service declaration must be a JSONObject.'+CRLF+Aconfig.FormatJson());
         {$ENDIF}
     end else begin
 
-        tmp:=Aconfig.getPath('bind');
-        if tmp.getPath('qqgroups')=nil then begin
+        tmp:=Aconfig.findPath('bind');
+        if tmp.findPath('qqgroups')=nil then begin
             {$IFDEF CoolQSDK}
             CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no QQ Groups was detected.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
-        end else if tmp.getPath('qqgroups').JSONType <> jtArray then begin
+        end else if tmp.findPath('qqgroups').JSONType <> jtArray then begin
             {$IFDEF CoolQSDK}
             CQ_i_addLog(CQLOG_WARNING,'Configuration','QQ Groups declaration in a service must be a JSONArray.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
         end else begin
-            if tmp.getPath('qqgroups').count = 0 then begin
+            if tmp.findPath('qqgroups').count = 0 then begin
                 {$IFDEF CoolQSDK}
                 CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no QQ Groups was detected.'+CRLF+Aconfig.FormatJson());
                 {$ENDIF}
             end;
-            for i:= 0 to tmp.getPath('qqgroups').count-1 do begin
-                cnt := tmp.getPath('qqgroups['+NumToChar(i)+']');
+            for i:= 0 to tmp.findPath('qqgroups').count-1 do begin
+                cnt := tmp.findPath('qqgroups['+NumToChar(i)+']');
                 if (cnt.JSONType <> jtNumber) then begin
                     {$IFDEF CoolQSDK}
                     CQ_i_addLog(CQLOG_WARNING,'Configuration','A QQ Group declaration in a service must be a NUMBER.'+CRLF+Aconfig.FormatJson());
@@ -952,22 +952,22 @@ begin
             end;
         end;
         
-        if tmp.getPath('minecraft')=nil then begin
+        if tmp.findPath('minecraft')=nil then begin
             {$IFDEF CoolQSDK}
             CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no Minecraft terminal was detected.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
-        end else if tmp.getPath('minecraft').JSONType <> jtArray then begin
+        end else if tmp.findPath('minecraft').JSONType <> jtArray then begin
             {$IFDEF CoolQSDK}
             CQ_i_addLog(CQLOG_WARNING,'Configuration','Minecraft terminals declaration in a service must be a JSONArray.'+CRLF+Aconfig.FormatJson());
             {$ENDIF}
         end else begin
-            if tmp.getPath('minecraft').count = 0 then begin
+            if tmp.findPath('minecraft').count = 0 then begin
                 {$IFDEF CoolQSDK}
                 CQ_i_addLog(CQLOG_WARNING,'Configuration','A service with no Minecraft terminal was detected.'+CRLF+Aconfig.FormatJson());
                 {$ENDIF}
             end;
-            for i:= 0 to tmp.getPath('minecraft').count-1 do begin
-                cnt := tmp.getPath('minecraft['+NumToChar(i)+']');
+            for i:= 0 to tmp.findPath('minecraft').count-1 do begin
+                cnt := tmp.findPath('minecraft['+NumToChar(i)+']');
                 if (cnt.JSONType <> jtString) or (not IsGuid(cnt.AsString)) then begin
                     {$IFDEF CoolQSDK}
                     CQ_i_addLog(CQLOG_WARNING,'Configuration','A Minecraft terminal declaration in a service must be a UUID Format String.'+CRLF+Aconfig.FormatJson());

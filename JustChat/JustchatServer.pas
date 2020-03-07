@@ -457,6 +457,9 @@ begin
 	ConnectedTerminal.name := Base64_Decryption(S.FindPath('name').asString);
 	ConnectedTerminal.Connection := self.Connection;
 
+	// 删除 ID 后再发出去
+	TJsonObject(S).Delete('id');
+
 	MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_All, TJustChatStructedMessage.Registration_online , S.AsJSON);
 	MsgPack.MessageReplacementsAdd('SERVER',ConnectedTerminal.name);
 	MsgPack.MessageReplacementsAdd('NAME',ConnectedTerminal.name);
@@ -471,12 +474,18 @@ var
 	eventType : int64;
 	MsgPack : TJustChatStructedMessage;
 
+	tmpObject : TJsonObject;
+
 	content, sender : ansistring;
 begin
 	if (Status <> Confirmed) or (ConnectedTerminal.Connection <> self.Connection) then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message.');
 	end;
+
+	tmpObject := TJsonObject(S);
+	if (tmpObject.findPath('from_server')<>nil) then tmpObject.Delete('from_server');
+	tmpObject.Add('from_server',Base64_Encryption(ConnectedTerminal.name));
 
 	if S.FindPath('event')<>nil then begin
 		/// 定义事件
@@ -591,12 +600,18 @@ procedure TJustChatTerminal.OnMessageChat(S : TJsonData);
 var
 	MsgPack : TJustChatStructedMessage;
 
+	tmpObject : TJsonObject;
+
 	sender,world_display,content : ansistring;
 begin
 	if (Status <> Confirmed) or (ConnectedTerminal.Connection <> self.Connection) then begin
 		Connection.Disconnect();
 		raise Exception.Create('Invalid message.');
 	end;
+
+	tmpObject := TJsonObject(S);
+	if (tmpObject.findPath('from_server')<>nil) then tmpObject.Delete('from_server');
+	tmpObject.Add('from_server',Base64_Encryption(ConnectedTerminal.name));
 
 	sender := Base64_Decryption(S.FindPath('sender').asString);
 	world_display := Base64_Decryption(S.FindPath('world_display').asString);
