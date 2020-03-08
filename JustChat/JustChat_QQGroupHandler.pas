@@ -608,6 +608,7 @@ Begin
 	S.add('world',Base64_Encryption(NumToChar(fromGroup)));
 	S.add('world_display',Base64_Encryption(world_display));
 	S.add('content',content);
+	S.add('from_server',Base64_Encryption(JustChat_Config.Connection.name));
 
 	// Broadcast(S.AsJSON);
     MsgPack := TJustChatStructedMessage.Create(TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Message_All, TJustChatStructedMessage.Msg_Message_Overview , S.AsJSON);
