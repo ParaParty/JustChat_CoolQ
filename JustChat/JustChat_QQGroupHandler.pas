@@ -315,6 +315,8 @@ Begin
 				try
 					msgdata:=getjson(content);
 					
+					if (msgdata = nil) then raise Exception.Create('');
+
 					if msgdata.FindPath('detail_1') <> nil then begin
 
 						back:=Params_Get(p,'title');
@@ -371,6 +373,7 @@ Begin
 					end;
 
 					FreeAndNil(msgdata);
+
 				except
 					on e: Exception do begin
 						back:=Params_Get(p,'url');
