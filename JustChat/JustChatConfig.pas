@@ -649,7 +649,7 @@ begin
                     except
                         on e: Exception do begin
                             {$IFDEF CoolQSDK}
-                            CQ_i_addlog(CQLOG_ERROR, 'Configuration', 'Fail to load CQFace Map.' + CRLF + e.message);
+                            CQ_i_addlog(CQLOG_ERROR, 'Configuration', 'Fail to load CQFace Map.' + CRLF + AnsiToUTF8(e.message));
                             {$ENDIF}
                         end;
                     end;
@@ -687,7 +687,7 @@ begin
             except
                 on e: Exception do begin
                     {$IFDEF CoolQSDK}
-                    CQ_i_addlog(CQLOG_ERROR, 'Configuration', 'Fail to dump CQFace Map.' + CRLF + e.message);
+                    CQ_i_addlog(CQLOG_ERROR, 'Configuration', 'Fail to dump CQFace Map.' + CRLF + AnsiToUTF8(e.message));
                     {$ENDIF}
                 end;
             end;
@@ -830,7 +830,7 @@ begin
                 except
                     on e: Exception do begin
                         {$IFDEF CoolQSDK}
-                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', e.message);
+                        CQ_i_addlog(CQLOG_ERROR, 'Configuration', AnsiToUTF8(e.message));
                         {$ENDIF}
                     end;
                 end;

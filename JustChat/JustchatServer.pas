@@ -248,7 +248,7 @@ begin
 		on e: Exception do begin
 			{$IFDEF CoolQSDK}
 			CQ_i_addLog(CQLOG_ERROR, 'Server',
-				format('Client : %s:%d', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]) + CRLF + e.message
+				format('Client : %s:%d', [AContext.Binding.PeerIP, AContext.Binding.PeerPort]) + CRLF + AnsiToUTF8(e.message)
 			);
 			{$ENDIF}
 			AContext.Connection.Disconnect();
@@ -376,13 +376,13 @@ begin
 		end;
 
 
-		S.Free
+		S.Free;
 		
 	except
 		on e: Exception do begin
 			CQ_i_addLog(CQLOG_ERROR, 'Message Handler',
 				'Received an unrecognized message.' + CRLF +
-				e.message + CRLF +
+				AnsiToUTF8(e.message) + CRLF +
 				Base64_Encryption(MSG));
 		end;
 	end;
