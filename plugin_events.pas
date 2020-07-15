@@ -136,32 +136,14 @@ Function code_eventGroupMsg(
 Begin
 	if fromQQ=80000000 then exit(EVENT_IGNORE);
 
+	if (not pluginEnabled) then exit(EVENT_IGNORE);
+
 	{if (fromQQ=80000000) and (fromAnonymous<>'') then begin
 		CQ_Tools_TextToAnonymous(fromAnonymous,AnonymousMes);
 		//将匿名用户信息存到 AnonymousMes
 	end;}
 
 	JustChat_QQGroupHandler.code_eventGroupMsg(subType,MsgID,fromGroup,fromQQ,fromAnonymous,msg,font);
-
-	{
-	S					:= TStringlist.Create;
-	S.DelimitedText		:= msg;
-
-	if (s.count>=1) then begin
-		command := upcase(s[0]);
-		if (length(command)>=3) and (command[1]+command[2]+command[3]=ansistring('！')) then command:='!'+copy(command,4,length(command));
-		if (length(command)>0) and ((command[1]='/') or (command[1]='!')) then begin
-			delete(command,1,1);
-			if (EventSwitcher.playerList) and ((command='LS') or (command='LIST')) then begin
-				MSG_PlayerList();
-			end;
-		end;
-	end;
-
-
-	S.Clear;
-	S.Free;
-	}
 		
 {$IFDEF FPC}
 	exit(EVENT_IGNORE);

@@ -86,6 +86,14 @@ Type
 		record
 			data,entity		: longint;
 		end;}
+	CQ_Type_Group=
+		record
+			GroupID			: int64;
+			name			: ansistring;
+			members			: record
+									current,max : longint;
+								end;
+		end;
 	
 Const
 	CR = #$0d;
@@ -176,6 +184,7 @@ Const
 	Function CQ_i_GetLoginQQ():int64;
 	Function CQ_i_getLoginNick():string;
 	Function CQ_i_GetStrangerInfo(QQ:int64;Var info:CQ_Type_QQ;nocache:boolean):longint;
+	Function CQ_i_getGroupInfo(groupID:int64;Var info:CQ_Type_Group;nocache:boolean):longint;
 	function CQ_i_getGroupMemberInfo(groupid,qqid:int64;Var info:CQ_Type_GroupMember;nocache:boolean):longint;
 	function CQ_i_getAppDirectory:ansistring;
 	function CQ_i_addLog(priority:longint;const category,content:ansistring):longint;
@@ -550,7 +559,8 @@ function CQ_canSendImage(AuthCode:longint):longint;				//是否支持发送语�
 	stdcall; external 'CQP.dll' name 'CQ_canSendImage';
 function CQ_canSendRecord(AuthCode:longint):longint;			//是否支持发送语音，返回大于 0 为支持，等于 0 为不支持
 	stdcall; external 'CQP.dll' name 'CQ_canSendRecord';
-
+function CQ_getGroupInfo(AuthCode:longint;groupid:int64;nocache:longint):PAnsiChar; //取群信息(支持缓存)
+	stdcall; external 'CQP.dll' name 'CQ_getGroupInfo';
 	
 procedure InitBase64;
 var i:longint;
@@ -1255,6 +1265,29 @@ Begin
 	if GlobalUTF8Mode then begin
 		info.nick:=CoolQ_Tools_AnsiToUTF8(info.nick);
 	end;
+	
+	result:=0;
+End;
+
+// 取群信息 Auth=132 //getGroupInfo
+Function CQ_i_getGroupInfo(groupID:int64;Var info:CQ_Type_Group;nocache:boolean):longint;
+Var
+	data:ansistring;
+	i:longint;
+Begin
+	if nocache
+		then data:=PtoS(CQ_getGroupInfo(AuthCode,groupID,1))
+		else data:=PtoS(CQ_getGroupInfo(AuthCode,groupID,0));
+	data:=Base64_Decryption(data);
+	if length(data)<18 then begin
+		result:=-1000;
+		exit;
+	end;
+	i:=1;
+	info.groupID:=CoolQ_Tools_Unpack_GetNum(i,8,data);
+	info.name:=CoolQ_Tools_AnsiToUTF8(CoolQ_Tools_Unpack_GetStr(i,data));
+	info.members.current:=CoolQ_Tools_Unpack_GetNum(i,4,data);
+	info.members.max:=CoolQ_Tools_Unpack_GetNum(i,4,data);
 	
 	result:=0;
 End;

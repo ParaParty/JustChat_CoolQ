@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Release",
+            "label": "Release (-O2 -Xg -Xm)",
             "type": "shell",
             "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
             "args": [
@@ -21,7 +21,7 @@
             }
         },
         {
-            "label": "Debug -g",
+            "label": "Debug (-g)",
             "type": "shell",
             "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
             "args": [
@@ -36,7 +36,7 @@
             }
         },
         {
-            "label": "Debug -Xg -Xm",
+            "label": "Debug (-Xg -Xm)",
             "type": "shell",
             "command": "C:\\FPC\\3.0.0\\bin\\i386-win32\\fpc.exe",
             "args": [

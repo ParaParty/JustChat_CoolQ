@@ -49,8 +49,8 @@ type
     end;
 
 type
-    AnsistringLess= specialize TLess<ansistring>;
-    Int64Less= specialize TLess<int64>;
+    AnsistringLess = specialize TLess<ansistring>;
+    Int64Less = specialize TLess<int64>;
     StringBooleanMap = specialize TMap<ansistring, boolean, AnsistringLess>;
     StringStringMap = specialize TMap<ansistring, ansistring, AnsistringLess>;
     Int64StringMap = specialize TMap<int64, ansistring, Int64Less>;
@@ -1154,6 +1154,7 @@ Var
 begin
 	//WaitForSingleObject(hMutex,Const_ThreadWaitingTime);
     AMsg := Msg.MinecraftFormatter;
+    //CQ_i_addLog(CQLOG_DEBUG,'TJustChatService_MinecraftTerminal.Send', Base64_Encryption(AMsg));
 	len:=length(AMsg);
     if len = 0 then exit(0);
 	p:=MessageHeader+ char(len div (2<<23)) + char(len mod (2<<23) div (2<<15)) + char(len mod (2<<15) div (2<<7)) + char(len mod (2<<7)) + AMsg;

@@ -513,18 +513,14 @@ End;
 
 function getGroupName(groupID:int64):ansistring;
 Var
-	i				:	longint;
-	GroupList		:	CQ_Type_GroupList;
+	GroupInfo		:	CQ_Type_Group;
 Begin
-	result:=NumToChar(groupID);
-	if CQ_i_getGroupList(GroupList)=0 then begin
-		for i:=0 to GroupList.l-1 do
-			if GroupList.s[i].groupID=groupID then
-				exit(GroupList.s[i].name);
+	if CQ_i_getGroupInfo(groupID, GroupInfo, false)=0 then begin
+		exit(GroupInfo.name)
 	end
 	else
 	begin
-		exit();
+		exit(NumToChar(groupID));
 	end;
 End;
 
